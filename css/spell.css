@@ -1,0 +1,438 @@
+/* ===========================
+   拼写训练模块样式 - spell.css
+   依赖全局 CSS 变量（style.css）
+   =========================== */
+
+/* ---------- 拼写训练主容器 ---------- */
+.spell-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* ---------- 音节进度条 ---------- */
+.syllable-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  background-color: var(--bg-secondary);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.syllable-progress .progress-current {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.syllable-progress .progress-divider {
+  color: var(--border);
+}
+
+.syllable-progress .progress-total {
+  color: var(--text-secondary);
+}
+
+/* 音节进度条的可视化点 */
+.syllable-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.syllable-dots .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--border);
+  transition: all var(--transition);
+}
+
+.syllable-dots .dot.completed {
+  background-color: var(--accent);
+}
+
+.syllable-dots .dot.active {
+  background-color: var(--accent);
+  transform: scale(1.4);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+/* ---------- 音节格子容器 ---------- */
+.spell-slots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+}
+
+/* ---------- 单个音节格子 ---------- */
+.spell-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  min-height: 60px;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+  transition: all var(--transition);
+  position: relative;
+}
+
+/* 待填格子（灰色虚线） */
+.spell-slot.empty {
+  border: 2px dashed var(--border);
+  background-color: var(--bg-secondary);
+  color: var(--text-muted);
+}
+
+/* 当前正在填的格子（高亮边框 + 脉动动画） */
+.spell-slot.current {
+  border: 2px solid var(--accent);
+  background-color: var(--accent-light);
+  color: var(--accent);
+  animation: pulse 1.2s ease-in-out infinite;
+  box-shadow: 0 0 12px var(--accent-light);
+}
+
+/* 已填入的格子（实线，有文字，绿色底色） */
+.spell-slot.filled {
+  border: 2px solid var(--accent);
+  background-color: rgba(108, 92, 231, 0.08);
+  color: var(--text-primary);
+}
+
+/* ---------- 选项按钮容器 ---------- */
+.spell-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 1.5rem 0;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ---------- 选项按钮 ---------- */
+.spell-option-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  min-height: 48px;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  transition: all var(--transition);
+  letter-spacing: 0.03em;
+  text-transform: lowercase;
+}
+
+.spell-option-btn:hover {
+  border-color: var(--accent);
+  background-color: var(--accent-light);
+  color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+.spell-option-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.spell-option-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* 正确选项（绿色） */
+.spell-option-btn.correct {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+  pointer-events: none;
+  animation: slideIn 0.3s ease;
+}
+
+/* 错误选项（红色 + 抖动动画） */
+.spell-option-btn.wrong {
+  background-color: var(--danger);
+  border-color: var(--danger);
+  color: #ffffff;
+  pointer-events: none;
+  animation: shake 0.5s ease;
+}
+
+/* ---------- 拼写结果显示区 ---------- */
+.spell-result {
+  text-align: center;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  border-radius: var(--radius);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border);
+  animation: slideIn 0.4s ease;
+}
+
+.spell-result .result-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.spell-result .result-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.spell-result .result-text {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+/* 结果状态 */
+.spell-result.success {
+  border-color: var(--accent);
+  background-color: var(--accent-light);
+}
+
+.spell-result.success .result-title {
+  color: var(--accent);
+}
+
+.spell-result.failure {
+  border-color: var(--danger);
+  background-color: var(--danger-light);
+}
+
+.spell-result.failure .result-title {
+  color: var(--danger);
+}
+
+/* ---------- 完整单词显示（格子全部填满后） ---------- */
+.spell-word-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  animation: slideIn 0.5s ease;
+}
+
+.spell-word-display .word-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 50px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--accent);
+  border-bottom: 3px solid var(--accent);
+  background-color: var(--accent-light);
+  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
+}
+
+/* ---------- 提示/线索区域 ---------- */
+.spell-hint {
+  text-align: center;
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--warning-light);
+  color: var(--warning);
+  font-size: 0.9rem;
+}
+
+/* ---------- 拼写操作按钮 ---------- */
+.spell-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+
+/* ---------- 动画定义 ---------- */
+
+/* 抖动动画（错误时） */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+/* 滑入动画 */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 脉动动画（当前格子边框闪烁） */
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 4px var(--accent-light);
+  }
+  50% {
+    box-shadow: 0 0 16px var(--accent-light), 0 0 4px var(--accent);
+  }
+}
+
+/* 正确填入时的弹跳效果 */
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.spell-slot.just-filled {
+  animation: bounceIn 0.35s ease;
+}
+
+/* ---------- 暗色模式适配 ---------- */
+[data-theme="dark"] .spell-container {
+  background-color: transparent;
+}
+
+[data-theme="dark"] .spell-slot.empty {
+  border-color: var(--border);
+  background-color: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .spell-slot.current {
+  background-color: var(--accent-light);
+  box-shadow: 0 0 16px var(--accent-light);
+}
+
+[data-theme="dark"] .spell-slot.filled {
+  background-color: rgba(102, 187, 106, 0.1);
+  border-color: var(--accent);
+}
+
+[data-theme="dark"] .spell-option-btn {
+  background-color: var(--bg-secondary);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .spell-option-btn:hover {
+  background-color: var(--accent-light);
+  border-color: var(--accent);
+}
+
+[data-theme="dark"] .spell-result {
+  background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .spell-word-display .word-letter {
+  background-color: var(--accent-light);
+  border-bottom-color: var(--accent);
+}
+
+[data-theme="dark"] .syllable-dots .dot {
+  background-color: var(--border);
+}
+
+[data-theme="dark"] .syllable-dots .dot.completed,
+[data-theme="dark"] .syllable-dots .dot.active {
+  background-color: var(--accent);
+}
+
+/* ---------- 响应式适配 ---------- */
+@media (max-width: 768px) {
+  .spell-container {
+    padding: 1rem;
+  }
+
+  .spell-slot {
+    min-width: 50px;
+    min-height: 50px;
+    font-size: 1.3rem;
+  }
+
+  .spell-option-btn {
+    min-width: 48px;
+    min-height: 42px;
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .spell-word-display .word-letter {
+    width: 36px;
+    height: 44px;
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .spell-slot {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.15rem;
+    padding: 0.4rem 0.5rem;
+  }
+
+  .spell-slots {
+    gap: 0.5rem;
+  }
+
+  .spell-option-btn {
+    min-width: 42px;
+    min-height: 38px;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .spell-options {
+    gap: 0.4rem;
+  }
+
+  .spell-word-display .word-letter {
+    width: 30px;
+    height: 38px;
+    font-size: 1.2rem;
+  }
+}

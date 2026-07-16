@@ -1,0 +1,611 @@
+/* ===========================
+   新增页面样式 - pages.css
+   包含：拼写设置页、单词表页、已学单词页、查词页
+   依赖全局 CSS 变量（style.css）
+   =========================== */
+
+/* ===========================
+   一、拼写训练设置页面
+   =========================== */
+
+/* 设置页主容器 */
+.spell-setup {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* 模式选择卡片组 */
+.mode-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.mode-radio-label {
+  display: block;
+  cursor: pointer;
+}
+
+.mode-radio-label input[type="radio"] {
+  display: none;
+}
+
+/* 模式卡片 */
+.mode-radio-card {
+  padding: 1rem 1.2rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-primary);
+  transition: all var(--transition);
+}
+
+.mode-radio-label input[type="radio"]:checked + .mode-radio-card {
+  border-color: var(--accent);
+  background-color: var(--accent-light);
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.mode-radio-card:hover {
+  border-color: var(--accent);
+}
+
+.mode-radio-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.mode-radio-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 0.3rem;
+}
+
+.mode-radio-example {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 0.2rem 0.5rem;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-xs);
+  display: inline-block;
+}
+
+/* 范围选择组 */
+.range-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.range-radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-primary);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.range-radio-label input[type="radio"] {
+  accent-color: var(--accent);
+}
+
+.range-radio-label:has(input:checked) {
+  border-color: var(--accent);
+  background-color: var(--accent-light);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.range-radio-label:hover {
+  border-color: var(--accent);
+}
+
+/* ===========================
+   二、单词表页面
+   =========================== */
+
+/* 书籍标签栏 */
+.book-tabs-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+}
+
+/* 单个书籍标签 */
+.book-tab {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.book-tab:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.book-tab.active {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* 单元卡片 */
+.wordlist-unit-card {
+  overflow: hidden;
+}
+
+/* 单元卡片头部（可点击展开/折叠） */
+.wordlist-unit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color var(--transition);
+}
+
+.wordlist-unit-header:hover {
+  background-color: var(--bg-secondary);
+}
+
+.wordlist-unit-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.wordlist-unit-num {
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
+.wordlist-unit-name {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.wordlist-unit-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.wordlist-toggle {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  transition: transform var(--transition);
+}
+
+/* 单元内容区 */
+.wordlist-unit-body {
+  padding: 0 1rem 0.75rem 1rem;
+  animation: slideIn 0.3s ease;
+}
+
+/* 单词条目 */
+.wordlist-word-item {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background-color var(--transition);
+  border-radius: var(--radius-xs);
+}
+
+.wordlist-word-item:hover {
+  background-color: var(--bg-secondary);
+}
+
+.wordlist-word-item:last-child {
+  border-bottom: none;
+}
+
+.wordlist-word {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.wordlist-phonetic {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.wordlist-translation {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  flex: 1;
+  min-width: 100px;
+}
+
+.wordlist-word-unmatched {
+  opacity: 0.6;
+}
+
+.wordlist-word-unmatched .wordlist-word {
+  color: var(--text-muted);
+}
+
+/* 已学单词标记 */
+.wordlist-word-item.word-learned {
+  background-color: rgba(108, 92, 231, 0.06);
+}
+
+.wordlist-word-item.word-learned .wordlist-word {
+  color: var(--accent);
+}
+
+/* 已学状态徽章 */
+.word-learned-badge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+
+.word-learned-badge.mastered {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.word-learned-badge.learning {
+  background: rgba(255, 152, 0, 0.15);
+  color: var(--warning);
+}
+
+.word-learned-badge.review {
+  background: rgba(33, 150, 243, 0.15);
+  color: var(--info);
+}
+
+/* 短语样式 */
+.wordlist-word-item.wordlist-word-phrase {
+  opacity: 0.75;
+  cursor: default;
+}
+
+.wordlist-word-item.wordlist-word-phrase .wordlist-word {
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+/* 朗读按钮（放大防误触） */
+.wordlist-speak-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.4rem 0.55rem;
+  opacity: 0.7;
+  transition: opacity var(--transition), transform var(--transition), background-color var(--transition);
+  flex-shrink: 0;
+  border-radius: var(--radius-xs);
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+}
+
+.wordlist-speak-btn:hover {
+  opacity: 1;
+  transform: scale(1.15);
+  background-color: var(--accent-light);
+}
+
+.wordlist-speak-btn:active {
+  background-color: var(--accent-light);
+  transform: scale(0.95);
+}
+
+/* 重点词汇星号 */
+.wordlist-star {
+  color: #ffc107;
+  font-size: 0.9rem;
+  margin-left: 0.2rem;
+  vertical-align: middle;
+  text-shadow: 0 0 1px rgba(255,193,7,0.3);
+}
+
+/* 生僻/非重点词汇：颜色变浅 */
+.wordlist-word-item.word-obscure .wordlist-word {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.wordlist-word-item.word-obscure .wordlist-translation {
+  opacity: 0.7;
+}
+
+/* 已学单词状态徽章 */
+.learned-status-badge {
+  font-size: 0.85rem;
+  margin-left: 0.3rem;
+}
+
+/* ===========================
+   三、已学单词页面
+   =========================== */
+
+/* 已学单词网格 */
+.learned-words-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+/* 单个已学单词条目 */
+.learned-word-item {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-primary);
+  transition: all var(--transition);
+}
+
+.learned-word-item:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.learned-word-main {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.5rem;
+  cursor: pointer;
+}
+
+.learned-word-text {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.learned-word-phonetic {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.learned-word-translation {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-top: 0.2rem;
+  line-height: 1.3;
+}
+
+/* 教材位置标签按钮 */
+.learned-word-location {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.35rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.72rem;
+  color: var(--info);
+  background-color: var(--info-light);
+  border: 1px solid transparent;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.learned-word-location:hover {
+  background-color: var(--info);
+  color: #ffffff;
+}
+
+/* ===========================
+   四、快速查词页面
+   =========================== */
+
+/* 搜索框 */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background-color: var(--bg-primary);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 1rem;
+  transition: border-color var(--transition);
+}
+
+.search-box:focus-within {
+  border-color: var(--accent);
+}
+
+.search-icon {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: var(--font-family);
+}
+
+/* 搜索结果条目 */
+.search-result-item {
+  padding: 0.75rem 1rem;
+}
+
+.search-result-main {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.6rem;
+  cursor: pointer;
+}
+
+.search-result-word {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.search-result-phonetic {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.search-result-translation {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin-top: 0.3rem;
+  line-height: 1.4;
+}
+
+/* ===========================
+   五、通用辅助样式
+   =========================== */
+
+/* 单词词性标签 */
+.word-pos {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.72rem;
+  color: var(--warning);
+  background-color: var(--warning-light);
+  border-radius: var(--radius-xs);
+  font-style: italic;
+}
+
+/* 表单输入框（手动拼写模式） */
+.form-control {
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.form-control:focus {
+  border-color: var(--accent);
+}
+
+/* ===========================
+   六、暗色模式适配
+   =========================== */
+
+[data-theme="dark"] .mode-radio-card {
+  background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .mode-radio-example {
+  background-color: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .range-radio-label {
+  background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .book-tab {
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .book-tab.active {
+  background-color: var(--accent);
+  color: #ffffff;
+}
+
+[data-theme="dark"] .wordlist-word-item:hover {
+  background-color: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .learned-word-item {
+  background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .search-box {
+  background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .search-box input {
+  color: var(--text-primary);
+}
+
+/* ===========================
+   七、响应式适配
+   =========================== */
+
+@media (max-width: 768px) {
+  .learned-words-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-radio-card {
+    padding: 0.8rem 1rem;
+  }
+
+  .mode-radio-title {
+    font-size: 1rem;
+  }
+
+  .mode-radio-desc {
+    font-size: 0.8rem;
+  }
+
+  .book-tabs-container {
+    gap: 0.3rem;
+  }
+
+  .book-tab {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .range-radio-group {
+    flex-direction: column;
+  }
+
+  .range-radio-label {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .wordlist-unit-header {
+    padding: 0.6rem 0.8rem;
+  }
+
+  .wordlist-word {
+    font-size: 0.95rem;
+  }
+}

@@ -1,0 +1,545 @@
+/* ===========================
+   改错挑战模块样式 - challenge.css
+   依赖全局 CSS 变量（style.css）
+   =========================== */
+
+/* ---------- 改错挑战主容器 ---------- */
+.challenge-container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* ---------- 挑战句子展示区 ---------- */
+.challenge-sentence {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.8;
+  text-align: center;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  background-color: var(--bg-primary);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px var(--shadow);
+  animation: slideIn 0.4s ease;
+}
+
+/* ---------- 可编辑文本区域 ---------- */
+.challenge-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 1rem;
+  font-size: 1.1rem;
+  line-height: 1.8;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  resize: vertical;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  margin-bottom: 1rem;
+}
+
+.challenge-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+  outline: none;
+}
+
+.challenge-textarea::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ---------- 原始句子（灰色小字，供参考） ---------- */
+.challenge-original {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-secondary);
+  border-left: 3px solid var(--border);
+  line-height: 1.6;
+}
+
+.challenge-original .original-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-right: 0.35rem;
+}
+
+/* ---------- 本题涉及的5个单词标签展示 ---------- */
+.challenge-words {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.challenge-words .words-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-right: 0.25rem;
+}
+
+/* 单词标签（小胶囊，灰色背景） */
+.word-tag {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  transition: all var(--transition);
+}
+
+.word-tag:hover {
+  background-color: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* 已使用/匹配的单词标签 */
+.word-tag.used {
+  background-color: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+/* ---------- 差异高亮样式 ---------- */
+.challenge-diff {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border);
+  font-size: 1.05rem;
+  line-height: 2;
+}
+
+/* 正确修改（绿色背景） */
+.diff-correct {
+  background-color: var(--accent-light);
+  color: var(--accent);
+  padding: 0.1rem 0.3rem;
+  border-radius: var(--radius-xs);
+  border-bottom: 2px solid var(--accent);
+}
+
+/* 错误部分（红色删除线） */
+.diff-error {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: var(--danger);
+  text-decoration: line-through;
+  padding: 0.1rem 0.3rem;
+  border-radius: var(--radius-xs);
+}
+
+/* 缺失部分（黄色背景） */
+.diff-missing {
+  background-color: rgba(255, 152, 0, 0.15);
+  color: var(--warning);
+  padding: 0.1rem 0.3rem;
+  border-radius: var(--radius-xs);
+  border-bottom: 2px dashed var(--warning);
+}
+
+/* ---------- 错误解释区域（卡片样式，展开/折叠） ---------- */
+.challenge-explanation {
+  margin: 1.25rem 0;
+  border-radius: var(--radius);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.challenge-explanation .explanation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  cursor: pointer;
+  background-color: var(--bg-secondary);
+  transition: background-color var(--transition);
+  user-select: none;
+}
+
+.challenge-explanation .explanation-header:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.challenge-explanation .explanation-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.challenge-explanation .explanation-toggle {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  transition: transform var(--transition);
+}
+
+/* 展开时箭头旋转 */
+.challenge-explanation.open .explanation-toggle {
+  transform: rotate(180deg);
+}
+
+.challenge-explanation .explanation-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+/* 展开状态 */
+.challenge-explanation.open .explanation-body {
+  max-height: 500px;
+  padding: 1rem 1.25rem;
+}
+
+.challenge-explanation .explanation-content {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+.challenge-explanation .explanation-content .error-item {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-secondary);
+  border-left: 3px solid var(--danger);
+}
+
+.challenge-explanation .explanation-content .error-item:last-child {
+  margin-bottom: 0;
+}
+
+.challenge-explanation .explanation-content .error-word {
+  font-weight: 700;
+  color: var(--danger);
+}
+
+.challenge-explanation .explanation-content .correct-word {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.challenge-explanation .explanation-content .error-reason {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+/* ---------- 导航按钮区 ---------- */
+.challenge-nav {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.challenge-nav .btn {
+  min-width: 110px;
+}
+
+/* ---------- AI 生成中的加载状态 ---------- */
+.challenge-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  gap: 1rem;
+}
+
+.challenge-loading .loading-icon {
+  font-size: 2rem;
+  animation: spin 1.2s linear infinite;
+  color: var(--accent);
+}
+
+.challenge-loading .loading-text {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.challenge-loading .loading-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* 加载中的骨架屏占位 */
+.challenge-loading .skeleton-sentence {
+  width: 80%;
+  height: 1.5rem;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--bg-tertiary) 25%,
+    var(--border) 50%,
+    var(--bg-tertiary) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  margin-bottom: 0.75rem;
+}
+
+/* ---------- 挑战统计面板 ---------- */
+.challenge-stats {
+  max-width: 500px;
+  margin: 1.5rem auto;
+  padding: 1.5rem;
+  background-color: var(--bg-primary);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.challenge-stats .stats-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.challenge-stats .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.challenge-stats .stats-item {
+  text-align: center;
+  padding: 0.75rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-secondary);
+}
+
+.challenge-stats .stats-item .stats-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.challenge-stats .stats-item .stats-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+.challenge-stats .stats-item.correct .stats-number {
+  color: var(--accent);
+}
+
+.challenge-stats .stats-item.wrong .stats-number {
+  color: var(--danger);
+}
+
+.challenge-stats .stats-item.skipped .stats-number {
+  color: var(--warning);
+}
+
+/* ---------- 挑战进度条 ---------- */
+.challenge-progress {
+  margin-bottom: 1.25rem;
+}
+
+/* ---------- 提交结果反馈 ---------- */
+.challenge-feedback {
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  border-radius: var(--radius);
+  animation: slideIn 0.3s ease;
+}
+
+.challenge-feedback.perfect {
+  background-color: var(--accent-light);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+
+.challenge-feedback.partial {
+  background-color: var(--warning-light);
+  border: 1px solid var(--warning);
+  color: var(--warning);
+}
+
+.challenge-feedback.failed {
+  background-color: var(--danger-light);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+/* ---------- 滑入动画 ---------- */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- 暗色模式适配 ---------- */
+[data-theme="dark"] .challenge-container {
+  background-color: transparent;
+}
+
+[data-theme="dark"] .challenge-sentence {
+  box-shadow: 0 2px 12px var(--shadow-strong);
+}
+
+[data-theme="dark"] .challenge-textarea {
+  background-color: var(--bg-secondary);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .challenge-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+[data-theme="dark"] .challenge-original {
+  background-color: var(--bg-tertiary);
+  border-left-color: var(--text-muted);
+}
+
+[data-theme="dark"] .word-tag {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .word-tag:hover {
+  background-color: var(--accent-light);
+  border-color: var(--accent);
+}
+
+[data-theme="dark"] .word-tag.used {
+  background-color: var(--accent-light);
+  border-color: var(--accent);
+}
+
+[data-theme="dark"] .challenge-diff {
+  background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .diff-correct {
+  background-color: rgba(102, 187, 106, 0.15);
+}
+
+[data-theme="dark"] .diff-error {
+  background-color: rgba(239, 83, 80, 0.1);
+}
+
+[data-theme="dark"] .diff-missing {
+  background-color: rgba(255, 167, 38, 0.15);
+}
+
+[data-theme="dark"] .challenge-explanation {
+  box-shadow: 0 2px 12px var(--shadow-strong);
+}
+
+[data-theme="dark"] .challenge-explanation .explanation-header {
+  background-color: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .challenge-explanation .explanation-content .error-item {
+  background-color: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .challenge-stats {
+  box-shadow: 0 2px 12px var(--shadow-strong);
+}
+
+[data-theme="dark"] .challenge-stats .stats-item {
+  background-color: var(--bg-tertiary);
+}
+
+/* ---------- 响应式适配 ---------- */
+@media (max-width: 768px) {
+  .challenge-container {
+    padding: 1rem;
+  }
+
+  .challenge-sentence {
+    font-size: 1.25rem;
+    padding: 1.25rem;
+  }
+
+  .challenge-textarea {
+    font-size: 1rem;
+    min-height: 100px;
+  }
+
+  .challenge-nav .btn {
+    min-width: 90px;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .challenge-stats .stats-item .stats-number {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .challenge-sentence {
+    font-size: 1.1rem;
+    padding: 1rem;
+  }
+
+  .challenge-textarea {
+    font-size: 0.95rem;
+    min-height: 80px;
+  }
+
+  .challenge-nav {
+    gap: 0.5rem;
+  }
+
+  .challenge-nav .btn {
+    min-width: 75px;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .challenge-words {
+    gap: 0.35rem;
+  }
+
+  .word-tag {
+    font-size: 0.8rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  .challenge-stats .stats-grid {
+    gap: 0.5rem;
+  }
+
+  .challenge-stats .stats-item {
+    padding: 0.5rem 0.35rem;
+  }
+
+  .challenge-stats .stats-item .stats-number {
+    font-size: 1.1rem;
+  }
+}
