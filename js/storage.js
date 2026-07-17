@@ -96,10 +96,13 @@ class ProgressStorage {
   }
 
   /**
-   * 获取各状态的数量统计
+   * 获取各状态的数量统计（自动将到期的 mastered 转为 review）
    * @returns {{ learning: number, mastered: number, review: number, total: number }}
    */
   getProgressStats() {
+    // 先执行自动状态转换（遗忘曲线）
+    this._autoUpdateReviewStatus();
+
     const progress = this.getAllProgress();
     const stats = { learning: 0, mastered: 0, review: 0, total: 0 };
     Object.values(progress).forEach((item) => {
@@ -109,6 +112,98 @@ class ProgressStorage {
       stats.total++;
     });
     return stats;
+  }
+
+  /**
+   * 艾宾浩斯遗忘曲线复习间隔（小时）
+   * 第1次复习：1小时后，第2次：9小时后，第3次：1天，第4次：2天，第5次：4天，第6次：7天，第7次：15天
+   */
+  get REVIEW_INTERVALS() {
+    return [1, 9, 24, 48, 96, 168, 360];
+  }
+
+  /**
+   * 自动更新复习状态
+   * 检查所有 mastered 状态的单词，如果距离上次学习时间超过当前复习间隔，则转为 review
+   */
+  _autoUpdateReviewStatus() {
+    try {
+      const progress = this.getAllProgress();
+      const now = Date.now();
+      let changed = false;
+
+      for (const wordId in progress) {
+        const item = progress[wordId];
+        if (item.status !== 'mastered') continue;
+
+        // 获取复习次数和上次更新时间
+        const reviewCount = item.reviewCount || 0;
+        const updatedAt = item.updatedAt || 0;
+        const hoursPassed = (now - updatedAt) / (1000 * 60 * 60);
+
+        // 获取当前复习间隔
+        const intervalIndex = Math.min(reviewCount, this.REVIEW_INTERVALS.length - 1);
+        const intervalHours = this.REVIEW_INTERVALS[intervalIndex];
+
+        // 如果超过间隔时间，转为待复习
+        if (hoursPassed >= intervalHours) {
+          progress[wordId].status = 'review';
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(progress));
+        console.log('[ProgressStorage] 已自动更新部分单词为待复习状态');
+      }
+    } catch (e) {
+      console.error('[ProgressStorage] 自动更新复习状态失败:', e);
+    }
+  }
+
+  /**
+   * 获取所有待复习的单词（status === 'review'）
+   * @returns {Array<{id: number, word: string, status: string, updatedAt: number}>}
+   */
+  getReviewWords() {
+    this._autoUpdateReviewStatus();
+    const progress = this.getAllProgress();
+    const result = [];
+    for (const id in progress) {
+      if (progress[id].status === 'review') {
+        result.push({
+          id: parseInt(id, 10),
+          word: progress[id].word || '',
+          status: 'review',
+          updatedAt: progress[id].updatedAt || 0,
+        });
+      }
+    }
+    // 按更新时间排序（最久没复习的排前面）
+    result.sort((a, b) => a.updatedAt - b.updatedAt);
+    return result;
+  }
+
+  /**
+   * 标记单词为已掌握（增加复习次数，用于遗忘曲线计算）
+   * @param {number} wordId - 单词ID
+   * @param {string} wordText - 单词文本
+   */
+  markMastered(wordId, wordText) {
+    try {
+      const progress = this.getAllProgress();
+      const existing = progress[String(wordId)] || {};
+      const reviewCount = (existing.reviewCount || 0) + 1;
+      progress[String(wordId)] = {
+        status: 'mastered',
+        updatedAt: Date.now(),
+        word: wordText || existing.word || '',
+        reviewCount: reviewCount,
+      };
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(progress));
+    } catch (e) {
+      console.error('[ProgressStorage] 标记已掌握失败:', e);
+    }
   }
 
   /**

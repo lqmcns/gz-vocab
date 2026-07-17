@@ -206,6 +206,66 @@ function navigate(section) {
     return; // 阻止本次导航
   }
 
+  // 词汇量检测进行中，切换到其他页面时弹出确认
+  if (VocabTestModule && VocabTestModule._words && VocabTestModule._words.length > 0 &&
+      VocabTestModule._currentIndex < VocabTestModule._words.length &&
+      section !== 'home' && AppState.currentSection === 'home') {
+    showCustomConfirm({
+      title: '退出词汇量检测',
+      message: '确定要退出当前检测吗？<br><br>' +
+        '<small style="color:var(--text-muted);">当前检测进度将丢失，需要重新开始检测。</small>',
+      confirmText: '退出检测',
+      cancelText: '继续检测',
+      confirmClass: 'btn-danger',
+    }).then((confirmed) => {
+      if (confirmed) {
+        VocabTestModule.cancel();
+        navigate(section);
+      }
+    });
+    return;
+  }
+
+  // 拼写训练进行中（非学习流程内的拼写），切换到其他页面时弹出确认
+  if (SpellModule && SpellModule._words && SpellModule._words.length > 0 &&
+      !SpellModule._learnMode &&
+      SpellModule._wordIndex < SpellModule._words.length &&
+      section !== 'spell' && AppState.currentSection === 'spell') {
+    showCustomConfirm({
+      title: '退出拼写训练',
+      message: '确定要退出当前拼写训练吗？<br><br>' +
+        '<small style="color:var(--text-muted);">当前训练进度将丢失。</small>',
+      confirmText: '退出训练',
+      cancelText: '继续训练',
+    }).then((confirmed) => {
+      if (confirmed) {
+        SpellModule._words = [];
+        SpellModule._wordIndex = 0;
+        navigate(section);
+      }
+    });
+    return;
+  }
+
+  // 改错挑战进行中，切换到其他页面时弹出确认
+  if (ChallengeModule && ChallengeModule.isActive &&
+      section !== 'challenge' && AppState.currentSection === 'challenge') {
+    showCustomConfirm({
+      title: '退出改错挑战',
+      message: '确定要退出当前挑战吗？<br><br>' +
+        '<small style="color:var(--text-muted);">当前挑战进度将丢失。</small>',
+      confirmText: '退出挑战',
+      cancelText: '继续挑战',
+    }).then((confirmed) => {
+      if (confirmed) {
+        ChallengeModule.isActive = false;
+        ChallengeModule._challengeData = null;
+        navigate(section);
+      }
+    });
+    return;
+  }
+
   AppState.currentSection = section;
 
   // 更新 URL hash（不触发 hashchange 事件）
@@ -684,27 +744,59 @@ function getWordDataGlobal(id, wordText) {
 }
 
 function startReview() {
-  const progress = progressStorage.getAllProgress();
-  const reviewEntries = Object.entries(progress)
-    .filter(([id, item]) => {
-      return item.status === 'review' || item.status === 'learning' || item.status === 'mastered';
-    });
+  // 优先获取待复习的单词（遗忘曲线到期）
+  const reviewWords = progressStorage.getReviewWords();
+  const settings = settingsStorage.getSettings();
 
-  if (reviewEntries.length === 0) {
+  let selected = [];
+
+  if (reviewWords.length > 0) {
+    // 有待复习的词，优先复习这些（按最久没复习的排序，取前 batchSize 个）
+    selected = reviewWords.slice(0, settings.batchSize).map(w => ({
+      id: w.id,
+      word: w.word,
+    }));
+
+    // 如果待复习的词不够 batchSize，用其他已学词补充
+    if (selected.length < settings.batchSize) {
+      const progress = progressStorage.getAllProgress();
+      const otherWords = Object.entries(progress)
+        .filter(([id, item]) => {
+          return item.status === 'mastered' || item.status === 'learning';
+        })
+        .filter(([id]) => !selected.find(s => s.id === parseInt(id)))
+        .map(([id, item]) => ({ id: parseInt(id), word: item.word || '' }))
+        .sort(() => Math.random() - 0.5);
+
+      const need = settings.batchSize - selected.length;
+      selected = [...selected, ...otherWords.slice(0, need)];
+    }
+  } else {
+    // 没有待复习的词，从所有已学词中随机抽取
+    const progress = progressStorage.getAllProgress();
+    const allLearned = Object.entries(progress)
+      .filter(([id, item]) => {
+        return item.status === 'mastered' || item.status === 'learning' || item.status === 'review';
+      })
+      .map(([id, item]) => ({ id: parseInt(id), word: item.word || '' }))
+      .sort(() => Math.random() - 0.5);
+
+    if (allLearned.length === 0) {
+      showToast('暂无需要复习的单词，快去学习新词吧', 'info');
+      return;
+    }
+
+    selected = allLearned.slice(0, Math.min(settings.batchSize, allLearned.length));
+  }
+
+  if (selected.length === 0) {
     showToast('暂无需要复习的单词，快去学习新词吧', 'info');
     return;
   }
 
-  const settings = settingsStorage.getSettings();
-  const batchCount = Math.min(settings.batchSize, reviewEntries.length);
-
-  // 随机选一批
-  const shuffled = [...reviewEntries].sort(() => Math.random() - 0.5);
-  const selected = shuffled.slice(0, batchCount);
-
   // 跨数据源查找单词数据
-  const batchWords = selected.map(([id, item]) => {
-    return getWordDataGlobal(parseInt(id, 10), item.word);
+  const batchWords = selected.map((s) => {
+    return getWordDataGlobal(s.id, s.word);
   }).filter(Boolean);
 
   if (batchWords.length === 0) {
@@ -1016,13 +1108,13 @@ function startLearnFromSource() {
   } else if (source === 'learned') {
     // 已学单词复习
     const progress = progressStorage.getAllProgress();
-    const learnedIds = Object.keys(progress).map(Number);
-    if (learnedIds.length === 0) {
+    const learnedEntries = Object.entries(progress);
+    if (learnedEntries.length === 0) {
       showToast('暂无已学单词，先去学习新词吧', 'info');
       return;
     }
-    const batchIds = randomPick(learnedIds, Math.min(settings.batchSize, learnedIds.length));
-    batchWords = batchIds.map((id) => wordService.getWordById(id)).filter(Boolean);
+    const batchEntries = randomPick(learnedEntries, Math.min(settings.batchSize, learnedEntries.length));
+    batchWords = batchEntries.map(([id, item]) => getWordDataGlobal(parseInt(id), item.word)).filter(Boolean);
   }
 
   if (!batchWords || batchWords.length === 0) {
@@ -1532,11 +1624,11 @@ function onLearnSpellComplete(result) {
   const { wrongWords } = result;
   const wrongSet = new Set((wrongWords || []).map(w => w.word));
 
-  // 当前批次中拼对的单词 → 标记已掌握
+  // 当前批次中拼对的单词 → 标记已掌握（使用 markMastered 增加复习次数）
   const newlyMastered = flow.currentBatch.filter(w => !wrongSet.has(w.word));
   for (const word of newlyMastered) {
     if (word.id) {
-      progressStorage.saveProgress(word.id, 'mastered', word.word);
+      progressStorage.markMastered(word.id, word.word);
     }
     if (!flow.masteredWords.find(m => m.word === word.word)) {
       flow.masteredWords.push(word);
@@ -1547,7 +1639,7 @@ function onLearnSpellComplete(result) {
   const carriedMastered = flow.carriedWrongWords.filter(w => !wrongSet.has(w.word));
   for (const word of carriedMastered) {
     if (word.id) {
-      progressStorage.saveProgress(word.id, 'mastered', word.word);
+      progressStorage.markMastered(word.id, word.word);
     }
     if (!flow.masteredWords.find(m => m.word === word.word)) {
       flow.masteredWords.push(word);
@@ -2033,20 +2125,18 @@ async function startSpellTrainingV2() {
     }
   } else if (range === 'learned') {
     const progress = progressStorage.getAllProgress();
-    const learnedIds = Object.keys(progress)
-      .filter((id) => {
-        const item = progress[id];
+    const learnedEntries = Object.entries(progress)
+      .filter(([id, item]) => {
         return item.status === 'review' || item.status === 'learning' || item.status === 'mastered';
-      })
-      .map(Number);
+      });
 
-    if (learnedIds.length === 0) {
+    if (learnedEntries.length === 0) {
       showToast('暂无已学单词，快去学习新词吧', 'info');
       return;
     }
 
-    const batchIds = randomPick(learnedIds, Math.min(settings.batchSize, learnedIds.length));
-    words = batchIds.map((id) => wordService.getWordById(id)).filter(Boolean);
+    const batchEntries = randomPick(learnedEntries, Math.min(settings.batchSize, learnedEntries.length));
+    words = batchEntries.map(([id, item]) => getWordDataGlobal(parseInt(id), item.word)).filter(Boolean);
   }
 
   if (words.length === 0) {
@@ -2176,11 +2266,10 @@ function renderWordlistUnits(book) {
         </div>
         <div class="wordlist-unit-body" style="display: ${index === 0 ? 'block' : 'none'};">
           ${wordItems.map((item) => {
-            // 检查该单词是否已学
-            const lowerWord = item.word.toLowerCase();
+            // 检查该单词是否已学（通过单词文本匹配）
+            const lowerWord = item.word.toLowerCase().trim();
             const learnedEntry = Object.values(progress).find((p) => {
-              const w = wordService.getWordById(parseInt(Object.keys(progress).find(k => progress[k] === p), 10));
-              return w && w.word && w.word.toLowerCase() === lowerWord;
+              return p.word && p.word.toLowerCase().trim() === lowerWord;
             });
             const isLearned = !!learnedEntry;
             const learnedStatus = learnedEntry ? learnedEntry.status : null;
@@ -2875,10 +2964,10 @@ async function startChallenge() {
     words = randomPick(matched, Math.min(wordCount, matched.length));
   } else if (source === 'learned') {
     const progress = progressStorage.getAllProgress();
-    const learnedIds = Object.keys(progress).map(Number);
-    if (learnedIds.length === 0) { showToast('暂无已学单词', 'info'); return; }
-    const batchIds = randomPick(learnedIds, Math.min(wordCount, learnedIds.length));
-    words = batchIds.map((id) => wordService.getWordById(id)).filter(Boolean);
+    const learnedEntries = Object.entries(progress);
+    if (learnedEntries.length === 0) { showToast('暂无已学单词', 'info'); return; }
+    const batchEntries = randomPick(learnedEntries, Math.min(wordCount, learnedEntries.length));
+    words = batchEntries.map(([id, item]) => getWordDataGlobal(parseInt(id), item.word)).filter(Boolean);
   }
 
   if (words.length < 3) {
