@@ -742,6 +742,14 @@ select:focus {
   letter-spacing: -0.02em;
 }
 
+/* 音节分割：每个音节之间加淡下划线 */
+.word-syllable {
+  display: inline-block;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1px;
+  margin: 0 1px;
+}
+
 .word-card .word-phonetic {
   font-size: 1rem;
   color: var(--text-muted);
@@ -758,6 +766,57 @@ select:focus {
   font-size: 0.8rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
+}
+
+/* 已学单词列表项 */
+.learned-word-item {
+  position: relative;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  transition: all 0.2s;
+}
+.learned-word-item:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.learned-word-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+.learned-word-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.learned-word-phonetic {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 0.25rem;
+}
+.learned-word-translation {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+.learned-play-btn {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem;
+  opacity: 0.6;
+}
+.learned-play-btn:hover {
+  opacity: 1;
+}
+.learned-play-btn svg {
+  width: 16px;
+  height: 16px;
+  color: var(--accent) !important;
 }
 
 .word-card .word-translation {

@@ -1163,6 +1163,31 @@ function startLearnFromSource() {
 }
 
 /**
+ * 按音节分割渲染单词，每个音节之间加淡下划线分隔
+ * @param {string} word - 单词
+ * @returns {string} HTML，音节用 span 包裹并加下划线
+ */
+function renderWordWithSyllables(word) {
+  if (!word) return '';
+  // 短单词（<=4字母）不分割
+  if (word.length <= 4) return word;
+
+  try {
+    if (window.syllableService) {
+      const syllables = syllableService.split(word);
+      if (syllables && syllables.length > 1) {
+        return syllables.map((s) =>
+          `<span class="word-syllable">${s}</span>`
+        ).join('');
+      }
+    }
+  } catch (e) {
+    // 忽略错误，返回原始单词
+  }
+  return word;
+}
+
+/**
  * 渲染学习卡片（单词 + 音标 + 释义 + AI例句）
  */
 async function renderLearnStudy() {
@@ -1212,7 +1237,7 @@ async function renderLearnStudy() {
     </div>
 
     <div class="word-card learn-mode">
-      <div class="word-text">${word.word}</div>
+      <div class="word-text">${renderWordWithSyllables(word.word)}</div>
 
       <div class="word-phonetic-wrap">
         ${word.phonetic ? `<div class="word-phonetic">${word.phonetic}</div>` : ''}
@@ -2542,7 +2567,7 @@ function renderLearnedWordsList(query) {
           ${filtered.map((item) => {
             const w = item.word;
             return `
-              <div class="learned-word-item" onclick="speakWord('${w.word}')">
+              <div class="learned-word-item">
                 <div class="learned-word-main">
                   <span class="learned-word-text">${w.word}</span>
                   <span class="learned-status-badge" style="color: ${statusColors[item.status]};" title="${getStatusLabel(item.status)}">
@@ -2551,6 +2576,9 @@ function renderLearnedWordsList(query) {
                 </div>
                 ${w.phonetic ? `<div class="learned-word-phonetic">${w.phonetic}</div>` : ''}
                 <div class="learned-word-translation">${w.translation || ''}</div>
+                <button class="phonetic-btn learned-play-btn" onclick="event.stopPropagation(); speakWord('${w.word}')" title="点击发音">
+                  ${Icon.speak}
+                </button>
               </div>
             `;
           }).join('')}
@@ -2569,7 +2597,7 @@ function renderLearnedWordsList(query) {
           ${ungroupedFiltered.map((item) => {
             const w = item.word;
             return `
-              <div class="learned-word-item" onclick="speakWord('${w.word}')">
+              <div class="learned-word-item">
                 <div class="learned-word-main">
                   <span class="learned-word-text">${w.word}</span>
                   <span class="learned-status-badge" style="color: ${statusColors[item.status]};" title="${getStatusLabel(item.status)}">
@@ -2578,6 +2606,9 @@ function renderLearnedWordsList(query) {
                 </div>
                 ${w.phonetic ? `<div class="learned-word-phonetic">${w.phonetic}</div>` : ''}
                 <div class="learned-word-translation">${w.translation || ''}</div>
+                <button class="phonetic-btn learned-play-btn" onclick="event.stopPropagation(); speakWord('${w.word}')" title="点击发音">
+                  ${Icon.speak}
+                </button>
               </div>
             `;
           }).join('')}
@@ -2848,9 +2879,6 @@ function renderChallenge() {
       <p class="text-muted mt-1" style="font-size: 0.8rem;" id="difficulty-desc">
         小白：冠词/介词错误，句子较简单
       </p>
-      <p class="text-muted" style="font-size: 0.75rem; margin-top: 0.25rem;">
-        ${Icon.hint} 未手动选择时，将根据词汇量检测结果自动推荐：<strong>${({beginner:'小白',intermediate:'中级',advanced:'高级',master:'大师'})[getRecommendedDifficulty()]}</strong>
-      </p>
     </div>
 
     <div class="card mb-2">
@@ -2984,7 +3012,7 @@ async function startChallenge() {
     return;
   }
 
-  ChallengeModule.start(words, { difficulty, grammarPoint, userPickedDifficulty });
+  ChallengeModule.start(words, { difficulty, grammarPoint });
 }
 
 /* ===========================
@@ -3006,11 +3034,8 @@ const ChallengeModule = {
   async start(words, options = {}) {
     this.isActive = true;
     this._words = words;
-    // 如果用户没有手动选择难度，自动使用推荐难度（基于词汇量检测结果）
+    // 默认使用小白难度
     let difficulty = options.difficulty || 'beginner';
-    if (!options.userPickedDifficulty) {
-      difficulty = getRecommendedDifficulty();
-    }
     this._options = {
       difficulty: difficulty,
       grammarPoint: options.grammarPoint || '',
