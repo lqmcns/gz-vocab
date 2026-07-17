@@ -158,7 +158,39 @@ class TextbookService {
 
     // 2. 降级从教材词典查找
     if (this._dictMap && this._dictMap[lower]) {
-      return this._dictMap[lower];
+      const entry = this._dictMap[lower];
+      // 专有名词大小写修正（教材词典里都是小写，但应该大写）
+      const PROPER_NOUNS = new Set([
+        'african','amsterdam','netherlands','jewish','christian','german',
+        'italian','spanish','korean','korea','european','british','english',
+        'american','china','chinese','japan','japanese','asia','asian',
+        'africa','america','australia','canadian','canada','italy','greece',
+        'greek','britain','london','paris','washington','germany','russia',
+        'russian','india','indian','europe','christmas','bible','arab',
+        'moslem','muslim','christianity','french','france','spaniard',
+        'swiss','switzerland','belgian','belgium','danish','denmark',
+        'finnish','finland','norwegian','norway','swedish','sweden',
+        'polish','poland','portuguese','portugal','dutch','holland',
+        'austrian','austria','irish','ireland','scottish','scotland',
+        'welsh','wales','egyptian','egypt','brazilian','brazil',
+        'mexican','mexico','argentinian','argentina','chilean','chile',
+        'vietnamese','vietnam','thai','thailand','malaysian','malaysia',
+        'indonesian','indonesia','filipino','philippines','pakistani',
+        'pakistan','bangladeshi','bangladesh','turkish','turkey',
+        'israeli','israel','lebanese','lebanon','jordanian','jordan',
+        'syrian','syria','iraqi','iraq','iranian','iran','afghan',
+        'afghanistan','cambridge','oxford','harvard','yale','mit',
+        'shakespeare','shakespearean','elizabeth','victoria','david',
+        'michael','james','charles','william','thomas','richard',
+        'robert','daniel','matthew','christopher','joseph','andrew',
+        'joshua','kenneth','kevin','steven','brian','george','edward',
+        'ronald','timothy','jason','jeffrey','ryan','jacob','gary',
+      ]);
+      if (PROPER_NOUNS.has(lower)) {
+        // 返回修正大小写后的副本（首字母大写）
+        return { ...entry, word: lower.charAt(0).toUpperCase() + lower.slice(1) };
+      }
+      return entry;
     }
 
     return null;
