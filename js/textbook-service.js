@@ -138,24 +138,27 @@ class TextbookService {
     if (!word || typeof word !== 'string') return null;
     const lower = word.toLowerCase().trim();
 
-    // 1. 先从教材词典查找
-    if (this._dictMap && this._dictMap[lower]) {
-      return this._dictMap[lower];
-    }
-
-    // 2. 降级从gk3500查找
+    // 1. 先从 gk3500 查找（大小写更规范，释义更完整）
     if (window.wordService && wordService.isLoaded()) {
       if (!this._gkMap) {
         const dict = wordService._dictionary;
-        if (!dict || !Array.isArray(dict)) return null;
-        this._gkMap = {};
-        for (const entry of dict) {
-          if (entry && entry.word) {
-            this._gkMap[entry.word.toLowerCase()] = entry;
+        if (dict && Array.isArray(dict)) {
+          this._gkMap = {};
+          for (const entry of dict) {
+            if (entry && entry.word) {
+              this._gkMap[entry.word.toLowerCase()] = entry;
+            }
           }
         }
       }
-      return this._gkMap[lower] || null;
+      if (this._gkMap && this._gkMap[lower]) {
+        return this._gkMap[lower];
+      }
+    }
+
+    // 2. 降级从教材词典查找
+    if (this._dictMap && this._dictMap[lower]) {
+      return this._dictMap[lower];
     }
 
     return null;
@@ -163,24 +166,23 @@ class TextbookService {
 
   /**
    * 获取指定单元的所有单词词条列表（含音标、释义）
-   * 跳过短语，只返回单个单词
+   * 不跳过短语，短语也参与学习
    */
   getMatchedUnitWords(book, unit) {
     const words = this.getUnitWords(book, unit);
     const result = [];
-    let fakeId = 9000000;
+    // fakeId 编码 book 和 unit，确保全局唯一：9000000 + book*1000 + unit*10 + index
+    let fakeIdBase = 9000000 + book * 1000 + unit * 10;
 
-    for (const w of words) {
-      // 跳过短语和特殊格式
-      if (!w || w.includes(' ') || w.includes('...') || w.includes('/')) {
-        continue;
-      }
+    for (let i = 0; i < words.length; i++) {
+      const w = words[i];
+      if (!w) continue;
 
       const entry = this.matchWordToDictionary(w);
       if (entry) {
         // 统一格式
         result.push({
-          id: entry.id || fakeId++,
+          id: entry.id || (fakeIdBase + i),
           word: entry.word || w,
           phonetic: entry.phonetic || '',
           translation: entry.translation || '',
@@ -189,11 +191,12 @@ class TextbookService {
           oxford: entry.oxford || 0,
           bnc: entry.bnc || 0,
           frq: entry.frq || 0,
+          isPhrase: w.includes(' ') || w.includes('...') || w.includes('/'),
         });
       } else {
-        // 完全未找到的单词
+        // 完全未找到的单词（包括短语）
         result.push({
-          id: fakeId++,
+          id: fakeIdBase + i,
           word: w,
           phonetic: '',
           translation: '',
@@ -202,6 +205,7 @@ class TextbookService {
           oxford: 0,
           bnc: 0,
           frq: 0,
+          isPhrase: w.includes(' ') || w.includes('...') || w.includes('/'),
         });
       }
     }

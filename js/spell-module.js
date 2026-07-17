@@ -489,7 +489,14 @@ const SpellModule = {
     // 根据模式准备
     this._actualMode = this.mode;
 
-    if (this.mode === 'partial') {
+    // 短语（含空格/省略号/斜杠）强制使用手动输入模式
+    const isPhrase = this.currentWord.isPhrase ||
+      this.currentWord.word.includes(' ') ||
+      this.currentWord.word.includes('...') ||
+      this.currentWord.word.includes('/');
+    if (isPhrase) {
+      this._actualMode = 'manual';
+    } else if (this.mode === 'partial') {
       // 部分挖空模式：尝试准备空缺
       this._blanks = await this._prepareBlanks(this.currentWord.word);
       if (!this._blanks || this._blanks.length === 0) {

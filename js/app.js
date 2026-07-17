@@ -744,6 +744,19 @@ function getWordDataGlobal(id, wordText) {
     }
   }
 
+  // 4. 都查不到，返回基本数据（至少有单词文本），避免已学列表中丢失
+  if (wordText) {
+    return {
+      id: id,
+      word: wordText,
+      phonetic: '',
+      translation: '',
+      pos: '',
+      collins: 0,
+      oxford: 0,
+    };
+  }
+
   return null;
 }
 
@@ -1088,20 +1101,22 @@ function startLearnFromSource() {
       wordItems = textbookService.getUnitWordsWithDict(book, parseInt(unitValue, 10));
     }
 
-    // 过滤掉短语（短语无法进行拼写训练），并为每个单词补充 id（学习流程依赖 id 保存进度）
-    let fakeId = 9000000;
+    // 不过滤短语，短语也参与学习（短语在拼写阶段使用手动输入模式）
+    let fakeIdBase = 9000000 + book * 1000 + (unitValue === 'all' ? 0 : parseInt(unitValue, 10) * 10);
+    let fakeIdx = 0;
     batchWords = wordItems
-      .filter((item) => !item.isPhrase)
       .map((item) => {
         const entry = textbookService.matchWordToDictionary(item.word);
+        const id = entry && entry.id ? entry.id : (fakeIdBase + fakeIdx++);
         return {
-          id: entry && entry.id ? entry.id : fakeId++,
+          id: id,
           word: entry && entry.word ? entry.word : item.word,
           phonetic: item.phonetic || (entry ? entry.phonetic : '') || '',
           translation: item.translation || (entry ? entry.translation : '') || '',
           pos: item.pos || '',
           collins: item.collins || 0,
           oxford: item.oxford || 0,
+          isPhrase: item.isPhrase || false,
         };
       });
 
