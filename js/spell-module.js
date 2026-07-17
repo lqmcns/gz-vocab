@@ -110,7 +110,7 @@ const SpellModule = {
    * 每个空缺/单词的最大尝试次数
    * @private
    */
-  _maxAttempts: 3,
+  _maxAttempts: 2,
 
   /**
    * 选项加载中标志
@@ -379,7 +379,7 @@ const SpellModule = {
       clickedBtn.style.animation = 'shake 0.4s ease-in-out';
 
       this._attempts++;
-      feedbackContainer.innerHTML = `<span style="color: var(--danger); font-size: 0.9rem;">&#x2716; 不对，再选一次（剩余 ${this._maxAttempts - this._attempts} 次机会）</span>`;
+      feedbackContainer.innerHTML = `<span style="color: var(--danger); font-size: 0.9rem;">&#x2716; 不对，再试一次（剩余 ${this._maxAttempts - this._attempts} 次机会）</span>`;
 
       if (this._attempts >= this._maxAttempts) {
         // 超过最大尝试次数
@@ -387,13 +387,21 @@ const SpellModule = {
           this._onWordFailed();
         }, 800);
       } else {
-        // 启用按钮让用户重新选择（错误的按钮保持禁用）
+        // 完整音节模式：重新打乱选项并清空已选内容
         setTimeout(() => {
-          buttons.forEach((btn, i) => {
-            if (i === optionIndex) return; // 错误的按钮保持禁用
-            btn.disabled = false;
-            btn.style.animation = '';
-          });
+          if (this._actualMode === 'full') {
+            // 清空已选音节，重新打乱选项
+            this._userSelections = [];
+            this._currentOptions = shuffleArray([...this._syllables]);
+            this._renderFullMode();
+          } else {
+            // 其他模式：启用按钮让用户重新选择
+            buttons.forEach((btn, i) => {
+              if (i === optionIndex) return;
+              btn.disabled = false;
+              btn.style.animation = '';
+            });
+          }
         }, 600);
       }
     }

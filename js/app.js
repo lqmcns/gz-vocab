@@ -187,16 +187,20 @@ function navigate(section) {
   if (AppState.learnFlow && AppState.learnFlow.phase !== 'complete' &&
       AppState.learnFlow.phase !== 'idle' &&
       section !== 'learn' && AppState.currentSection === 'learn') {
+    const isReview = AppState.learnFlow.isReview;
     // 使用自定义模态框替代浏览器 confirm
     showCustomConfirm({
-      title: '退出学习',
-      message: '确定要退出当前学习吗？<br><br>' +
-        '<small style="color:var(--text-muted);">已拼对的单词已自动保存进度，未完成拼写的单词不会计入已学会列表。下次进入此单元时可选择继续学习。</small>',
-      confirmText: '退出并保存',
-      cancelText: '继续学习',
+      title: isReview ? '退出复习' : '退出学习',
+      message: isReview
+        ? '确定要退出当前复习吗？<br><br>' +
+          '<small style="color:var(--text-muted);">已复习的单词进度已自动保存。</small>'
+        : '确定要退出当前学习吗？<br><br>' +
+          '<small style="color:var(--text-muted);">已拼对的单词已自动保存进度，未完成拼写的单词不会计入已学会列表。下次进入此单元时可选择继续学习。</small>',
+      confirmText: isReview ? '退出' : '退出并保存',
+      cancelText: isReview ? '继续复习' : '继续学习',
     }).then((confirmed) => {
       if (confirmed) {
-        // 保存学习进度到 localStorage
+        // 保存学习进度到 localStorage（复习模式不会保存，但调用无害）
         saveLearnFlowProgress();
         AppState.learnFlow = null;
         navigate(section); // 重新导航（这次不会再弹窗）
@@ -1186,11 +1190,14 @@ async function renderLearnStudy() {
     ? `批次 ${flow.batchIndex + 1}/${flow.batches.length} · `
     : '';
 
+  const isReviewMode = flow.isReview === true;
+  const phaseLabel = isReviewMode ? '复习阶段' : '学习阶段';
+
   section.innerHTML = `
     <div class="learn-phase-banner">
       <div style="display: flex; align-items: center; gap: 0.5rem;">
         ${fromWordList ? `<button class="btn btn-ghost btn-sm" onclick="exitLearnFlow()" title="返回">${Icon.back} 返回</button>` : ''}
-        <span class="phase-badge phase-study">${Icon.learn} 学习阶段</span>
+        <span class="phase-badge phase-study">${Icon.learn} ${phaseLabel}</span>
       </div>
       <span class="text-muted" style="font-size: 0.85rem;">
         ${batchInfo}第 <strong>${flow.studyIndex + 1}</strong> / ${flow.currentBatch.length} 个
@@ -2257,7 +2264,7 @@ function renderWordlistUnits(book) {
           <div class="wordlist-unit-title">
             <span class="wordlist-unit-num">Unit ${u.unit}</span>
             <span class="wordlist-unit-name">${u.title}</span>
-            ${unitCompleted ? `<span class="wordlist-unit-complete" title="本单元已全部学完" style="margin-left: 0.35rem; color: var(--warning, #f5a623);">${Icon.trophy}</span>` : ''}
+            ${unitCompleted ? `<span class="wordlist-unit-complete" title="本单元已全部学完" style="margin-left: 0.35rem; color: var(--warning, #f5a623); font-weight: bold; font-size: 1.1rem;">&#x2605;</span>` : ''}
           </div>
           <div class="wordlist-unit-meta">
             <span class="text-muted" style="font-size: 0.8rem;">${u.wordCount}词（${matchedCount}个有释义）</span>
@@ -2521,12 +2528,14 @@ function renderLearnedWordsList(query) {
     const bookName = key.split('|')[0];
     html += `
       <div class="card mb-2">
-        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;"
+          onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'grid' : 'none'; this.querySelector('.collapse-arrow').textContent = this.nextElementSibling.style.display === 'none' ? '▼' : '▲';">
           <span>${Icon.wordlist} ${bookName} - ${unitLabel}</span>
-          <span class="text-muted" style="font-size: 0.85rem; font-weight: normal;">
+          <span class="text-muted" style="font-size: 0.85rem; font-weight: normal; display: flex; align-items: center; gap: 0.5rem;">
             ${filtered.length} 词
-            <button class="btn btn-ghost btn-sm" style="font-size: 0.75rem; margin-left: 0.5rem; padding: 0.15rem 0.4rem;"
-              onclick="navigateToWordlistUnit(${bookVal}, ${unitVal})">跳转</button>
+            <span class="collapse-arrow" style="font-size: 0.7rem;">▲</span>
+            <button class="btn btn-ghost btn-sm" style="font-size: 0.75rem; padding: 0.15rem 0.4rem;"
+              onclick="event.stopPropagation(); navigateToWordlistUnit(${bookVal}, ${unitVal})">跳转</button>
           </span>
         </div>
         <div class="learned-words-grid">
@@ -3483,44 +3492,52 @@ const VocabTestModule = {
 
   /**
    * 构建 4 个难度的词库
-   * - 小白(beginner)：教材内 collins 4-5 星或 oxford 3000（最常用、最简单）
-   * - 普通(normal)：教材内 collins 3 星（较常用）
-   * - 中等(medium)：教材内 collins 1-2 星（较少用、较难）
+   * 按教材学习顺序划分（更符合中国学生的难度感知）：
+   * - 小白(beginner)：教材必修1-2 的词汇（最先学，最简单）
+   * - 普通(normal)：教材必修3-5 的词汇（中等难度）
+   * - 中等(medium)：教材选修6-8 的词汇（较难）
    * - 地狱(hell)：词典中不在教材内的词（教材外词汇）
    * @param {Array} dict - wordService._dictionary
    * @returns {Object} { beginner:[], normal:[], medium:[], hell:[] }
    */
   _buildPools(dict) {
-    const tbSet = this._buildTextbookWordSet();
+    // 构建教材单词到书籍编号的映射
+    const tbWordBookMap = {};
+    try {
+      if (textbookService && textbookService.isLoaded()) {
+        const all = textbookService.getAllTextbookWords();
+        for (const item of all) {
+          if (item && item.word) {
+            const w = String(item.word).toLowerCase().trim();
+            if (w) tbWordBookMap[w] = item.book; // book 编号 1-8
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[VocabTestModule] 构建教材映射失败:', e);
+    }
+
     const pools = { beginner: [], normal: [], medium: [], hell: [] };
 
     for (const w of dict) {
-      // 仅保留有中文释义、且是单个单词（非短语/不含数字/不含连字符）的词条
       if (!w || !w.word) continue;
       const word = String(w.word).trim();
       if (!word || word.includes(' ') || word.includes('-') || /\d/.test(word)) continue;
       if (!w.translation || !w.translation.trim()) continue;
 
-      const collins = Number(w.collins) || 0;
-      const oxford = Number(w.oxford) || 0;
-      const isInTextbook = tbSet.has(word.toLowerCase());
+      const bookNum = tbWordBookMap[word.toLowerCase()];
 
-      if (isInTextbook) {
-        // 教材内：按 collins 星级分到前三个难度
-        // Collins 星级越高 = 词越常用 = 越简单
-        if ((collins >= 4 && collins <= 5) || oxford === 1) {
-          // 4-5星或Oxford 3000：最常用、最简单 → 小白难度
-          pools.beginner.push(w);
-        } else if (collins === 3) {
-          // 3星：较常用 → 普通难度
-          pools.normal.push(w);
-        } else if (collins >= 1 && collins <= 2) {
-          // 1-2星：较少用、较难 → 中等难度
-          pools.medium.push(w);
-        }
-        // collins 0 的教材词不纳入前三个难度（样本充足，无需兜底）
+      if (bookNum >= 1 && bookNum <= 2) {
+        // 必修1-2：最先学，最简单 → 小白难度
+        pools.beginner.push(w);
+      } else if (bookNum >= 3 && bookNum <= 5) {
+        // 必修3-5：中等难度 → 普通难度
+        pools.normal.push(w);
+      } else if (bookNum >= 6 && bookNum <= 8) {
+        // 选修6-8：较难 → 中等难度
+        pools.medium.push(w);
       } else {
-        // 教材外：地狱难度
+        // 不在教材内 → 地狱难度
         pools.hell.push(w);
       }
     }

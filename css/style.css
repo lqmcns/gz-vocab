@@ -437,6 +437,34 @@ select:focus {
   color: var(--accent);
 }
 
+/* 发音/播放按钮：确保图标在亮色和暗色模式下都清晰可见 */
+.phonetic-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 8px;
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.phonetic-btn:hover {
+  background-color: var(--accent-light);
+}
+.phonetic-btn:active {
+  transform: scale(0.92);
+}
+.phonetic-btn svg {
+  color: var(--accent) !important;
+}
+
+/* 所有包含 svg 的 ghost 按钮：确保 svg 颜色跟随主题 */
+.btn-ghost svg {
+  color: inherit;
+}
+
 .btn-sm {
   padding: 0.35rem 0.75rem;
   font-size: 0.85rem;
