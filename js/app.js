@@ -41,13 +41,8 @@ async function init() {
     // 1. 恢复设置（如暗色模式）
     restoreSettings();
 
-    // 1.5 预加载语音引擎（解决首次发音模糊问题）
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.getVoices();
-      window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.getVoices();
-      };
-    }
+    // 1.5 初始化语音引擎（解决首次发音模糊和 voices 异步加载问题）
+    initSpeechEngine();
 
     // 2. 加载词库
     await wordService.loadDictionary();
@@ -100,19 +95,115 @@ function handleRouteChange() {
   navigate(targetSection);
 }
 
+/* ===========================
+   自定义模态框（替代浏览器 confirm/alert）
+   =========================== */
+
+/**
+ * 显示自定义确认对话框
+ * @param {object} options - 配置项
+ * @param {string} options.title - 标题
+ * @param {string} options.message - 消息内容（支持 HTML）
+ * @param {string} [options.confirmText='确认'] - 确认按钮文字
+ * @param {string} [options.cancelText='取消'] - 取消按钮文字
+ * @param {string} [options.confirmClass='btn-primary'] - 确认按钮样式类
+ * @param {boolean} [options.showCancel=true] - 是否显示取消按钮
+ * @returns {Promise<boolean>} 用户是否点击了确认
+ */
+function showCustomConfirm(options) {
+  return new Promise((resolve) => {
+    const {
+      title = '提示',
+      message = '',
+      confirmText = '确认',
+      cancelText = '取消',
+      confirmClass = 'btn-primary',
+      showCancel = true,
+    } = options || {};
+
+    // 创建遮罩
+    const overlay = document.createElement('div');
+    overlay.className = 'custom-modal-overlay';
+    overlay.style.cssText =
+      'position:fixed;top:0;left:0;width:100%;height:100%;' +
+      'background:rgba(0,0,0,0.4);z-index:9999;display:flex;' +
+      'align-items:center;justify-content:center;' +
+      'animation:fadeIn 0.15s ease;';
+
+    // 创建对话框
+    const modal = document.createElement('div');
+    modal.className = 'custom-modal';
+    modal.style.cssText =
+      'background:var(--bg-primary);border-radius:12px;padding:1.5rem;' +
+      'max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.2);' +
+      'animation:slideUp 0.2s ease;';
+
+    modal.innerHTML = `
+      <div style="font-size:1.1rem;font-weight:600;color:var(--text-primary);margin-bottom:0.75rem;">
+        ${title}
+      </div>
+      <div style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;margin-bottom:1.25rem;">
+        ${message}
+      </div>
+      <div style="display:flex;gap:0.5rem;justify-content:flex-end;">
+        ${showCancel ? `<button class="btn btn-ghost" data-action="cancel">${cancelText}</button>` : ''}
+        <button class="btn ${confirmClass}" data-action="confirm">${confirmText}</button>
+      </div>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // 初始化模态框内图标
+    if (window.initIcons) initIcons(modal);
+
+    const close = (result) => {
+      overlay.style.animation = 'fadeOut 0.15s ease';
+      setTimeout(() => {
+        document.body.removeChild(overlay);
+        resolve(result);
+      }, 150);
+    };
+
+    modal.querySelector('[data-action="confirm"]').addEventListener('click', () => close(true));
+    if (showCancel) {
+      modal.querySelector('[data-action="cancel"]').addEventListener('click', () => close(false));
+    }
+    // 点击遮罩关闭（仅当有取消按钮时）
+    if (showCancel) {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) close(false);
+      });
+    }
+  });
+}
+
 /**
  * 导航到指定 section
  * @param {string} section - section 名称 (home/learn/spell/challenge)
  */
 function navigate(section) {
-  // 如果正在学习中（非空闲状态），切换到其他页面时弹出确认
-  if (AppState.learnFlow && AppState.learnFlow.phase !== 'idle' &&
+  // 如果正在学习中（study或spell阶段），切换到其他页面时弹出自定义确认
+  if (AppState.learnFlow && AppState.learnFlow.phase !== 'complete' &&
+      AppState.learnFlow.phase !== 'idle' &&
       section !== 'learn' && AppState.currentSection === 'learn') {
-    if (!confirm('确定要离开学习吗？当前进度不会保存。')) {
-      return;
-    }
-    // 用户确认离开，清除学习流程
-    AppState.learnFlow = null;
+    // 使用自定义模态框替代浏览器 confirm
+    showCustomConfirm({
+      title: '退出学习',
+      message: '确定要退出当前学习吗？<br><br>' +
+        '<small style="color:var(--text-muted);">已拼对的单词已自动保存进度，未完成拼写的单词不会计入已学会列表。下次进入此单元时可选择继续学习。</small>',
+      confirmText: '退出并保存',
+      cancelText: '继续学习',
+    }).then((confirmed) => {
+      if (confirmed) {
+        // 保存学习进度到 localStorage
+        saveLearnFlowProgress();
+        AppState.learnFlow = null;
+        navigate(section); // 重新导航（这次不会再弹窗）
+      }
+      // 如果取消，什么都不做，留在当前页
+    });
+    return; // 阻止本次导航
   }
 
   AppState.currentSection = section;
@@ -301,15 +392,27 @@ function updateWorkerUrl(value) {
 }
 
 /**
- * 确认并清除学习进度
+ * 确认并清除学习进度（二次确认）
  */
-function confirmClearProgress() {
-  if (!confirm('确定要清除所有学习进度吗？\n\n所有已学单词、学习记录都将被删除，此操作不可撤销。')) {
-    return;
-  }
-  if (!confirm('再次确认：真的要清除全部进度吗？\n\n点击"确定"将永久删除所有学习数据。')) {
-    return;
-  }
+async function confirmClearProgress() {
+  const first = await showCustomConfirm({
+    title: '清除学习进度',
+    message: '确定要清除所有学习进度吗？<br><br>' +
+      '<small style="color:var(--text-muted);">所有已学单词、学习记录都将被删除，此操作不可撤销。</small>',
+    confirmText: '继续',
+    confirmClass: 'btn-danger',
+  });
+  if (!first) return;
+
+  const second = await showCustomConfirm({
+    title: '再次确认',
+    message: '真的要清除全部进度吗？<br><br>' +
+      '<small style="color:var(--text-muted);">点击"确定"将永久删除所有学习数据。</small>',
+    confirmText: '确定清除',
+    confirmClass: 'btn-danger',
+  });
+  if (!second) return;
+
   progressStorage.clearProgress();
   showToast('学习进度已清除', 'success');
   // 刷新首页统计
@@ -322,7 +425,14 @@ function confirmClearProgress() {
  * 确认并清除缓存数据
  */
 async function confirmClearCache() {
-  if (confirm('确定要清除所有AI例句缓存吗？\n（不影响学习进度，下次使用时会重新生成）')) {
+  const confirmed = await showCustomConfirm({
+    title: '清除缓存',
+    message: '确定要清除所有AI例句缓存吗？<br><br>' +
+      '<small style="color:var(--text-muted);">不影响学习进度，下次使用时会重新生成。</small>',
+    confirmText: '清除缓存',
+    confirmClass: 'btn-secondary',
+  });
+  if (confirmed) {
     try {
       await cacheStorage.clearCache();
       showToast('AI例句缓存已清除', 'success');
@@ -459,9 +569,9 @@ function renderHome() {
     <div class="card">
       <div class="card-header">${Icon.challenge} 快速开始</div>
       <div class="quick-actions">
-        <button class="quick-action-btn" onclick="navigate('learn')">
-          <span class="action-icon">${Icon.learn}</span>
-          <span class="action-label">学习新词</span>
+        <button class="quick-action-btn" onclick="VocabTestModule.start()">
+          <span class="action-icon">${Icon.vocabTest}</span>
+          <span class="action-label">词汇量检测</span>
         </button>
         <button class="quick-action-btn" onclick="startReview()">
           <span class="action-icon">${Icon.refresh}</span>
@@ -475,9 +585,9 @@ function renderHome() {
           <span class="action-icon">${Icon.challenge}</span>
           <span class="action-label">改错挑战</span>
         </button>
-        <button class="quick-action-btn" onclick="VocabTestModule.start()">
-          <span class="action-icon">${Icon.vocabTest}</span>
-          <span class="action-label">词汇量检测</span>
+        <button class="quick-action-btn" onclick="navigate('learn')">
+          <span class="action-icon">${Icon.learn}</span>
+          <span class="action-label">学习新词</span>
         </button>
         <button class="quick-action-btn" onclick="navigate('search')">
           <span class="action-icon">${Icon.search}</span>
@@ -855,6 +965,36 @@ function startLearnFromSource() {
     return;
   }
 
+  // 检查是否有已保存的学习进度（仅教材学习模式）
+  if (source === 'textbook') {
+    const savedProgress = getLearnFlowProgress(batchWords);
+    if (savedProgress) {
+      // 有保存的进度，询问用户是否继续
+      const masteredCount = (savedProgress.masteredWordIds || []).length;
+      const totalCount = batchWords.length;
+      showCustomConfirm({
+        title: '继续学习',
+        message: '检测到上次未完成的学习进度<br><br>' +
+          `<small style="color:var(--text-muted);">` +
+          `上次学到第 ${savedProgress.batchIndex + 1} 批，已掌握 ${masteredCount} / ${totalCount} 个单词<br>` +
+          `保存时间：${new Date(savedProgress.savedAt).toLocaleString()}</small>`,
+        confirmText: '继续学习',
+        cancelText: '从头开始',
+      }).then((confirmed) => {
+        if (confirmed) {
+          // 恢复上次进度
+          AppState.learnFlow = restoreLearnFlowProgress(batchWords, savedProgress);
+        } else {
+          // 从头开始，清除旧进度
+          clearLearnFlowProgress(batchWords);
+          AppState.learnFlow = createLearnFlow(batchWords);
+        }
+        renderLearnStudy();
+      });
+      return;
+    }
+  }
+
   // 初始化学习流程（分批学习）
   AppState.learnFlow = createLearnFlow(batchWords);
 
@@ -1122,13 +1262,131 @@ function renderLearnExample(example, word) {
  * 退出学习流程
  */
 function exitLearnFlow() {
-  if (AppState.learnFlow && AppState.learnFlow.phase === 'study') {
-    if (!confirm('确定要退出学习吗？当前进度不会保存。')) {
-      return;
-    }
+  if (AppState.learnFlow && AppState.learnFlow.phase !== 'complete') {
+    showCustomConfirm({
+      title: '退出学习',
+      message: '确定要退出当前学习吗？<br><br>' +
+        '<small style="color:var(--text-muted);">已拼对的单词已自动保存进度，未完成拼写的单词不会计入已学会列表。下次进入此单元时可选择继续学习。</small>',
+      confirmText: '退出并保存',
+      cancelText: '继续学习',
+    }).then((confirmed) => {
+      if (confirmed) {
+        saveLearnFlowProgress();
+        AppState.learnFlow = null;
+        navigate('wordlist');
+      }
+    });
+    return;
   }
   AppState.learnFlow = null;
   navigate('wordlist');
+}
+
+/**
+ * 保存当前学习进度到 localStorage
+ * 下次进入同一单元时可选择继续
+ */
+function saveLearnFlowProgress() {
+  const flow = AppState.learnFlow;
+  if (!flow) return;
+
+  // 构建进度数据（只保存必要的状态）
+  const progress = {
+    batchIndex: flow.batchIndex,
+    studyIndex: flow.studyIndex,
+    phase: flow.phase,
+    masteredWordIds: flow.masteredWords.map(w => w.id).filter(Boolean),
+    carriedWrongWords: flow.carriedWrongWords.map(w => w.word),
+    savedAt: Date.now(),
+  };
+
+  // 生成进度 key：基于学习来源
+  const key = getLearnFlowProgressKey(flow);
+  if (key) {
+    try {
+      localStorage.setItem(key, JSON.stringify(progress));
+      console.log('[LearnFlow] 学习进度已保存:', key);
+    } catch (e) {
+      console.warn('[LearnFlow] 保存进度失败:', e);
+    }
+  }
+}
+
+/**
+ * 获取学习流程的进度存储 key
+ * 基于学习来源（教材单元/随机/复习）生成唯一 key
+ */
+function getLearnFlowProgressKey(flow) {
+  if (!flow) return null;
+  // 复习模式或随机模式不保存进度
+  if (flow.isReview) return null;
+  // 从单词表进入的单个单词学习不保存
+  if (flow.fromWordList) return null;
+  // 教材学习：用所有单词的 ID 生成 key
+  if (flow.words && flow.words.length > 0) {
+    const firstId = flow.words[0].id || '';
+    const lastId = flow.words[flow.words.length - 1].id || '';
+    return 'learnflow_' + firstId + '_' + lastId + '_' + flow.words.length;
+  }
+  return null;
+}
+
+/**
+ * 检查是否有已保存的学习进度
+ * @param {Array} words - 本次学习的单词列表
+ * @returns {object|null} 保存的进度数据
+ */
+function getLearnFlowProgress(words) {
+  if (!words || words.length === 0) return null;
+  const firstId = words[0].id || '';
+  const lastId = words[words.length - 1].id || '';
+  const key = 'learnflow_' + firstId + '_' + lastId + '_' + words.length;
+  try {
+    const data = localStorage.getItem(key);
+    if (data) {
+      return JSON.parse(data);
+    }
+  } catch (e) {
+    console.warn('[LearnFlow] 读取进度失败:', e);
+  }
+  return null;
+}
+
+/**
+ * 清除已保存的学习进度
+ * @param {Array} words - 本次学习的单词列表
+ */
+function clearLearnFlowProgress(words) {
+  if (!words || words.length === 0) return;
+  const firstId = words[0].id || '';
+  const lastId = words[words.length - 1].id || '';
+  const key = 'learnflow_' + firstId + '_' + lastId + '_' + words.length;
+  try {
+    localStorage.removeItem(key);
+  } catch (e) { /* 忽略 */ }
+}
+
+/**
+ * 恢复学习进度到 learnFlow
+ * @param {Array} words - 完整的单词列表
+ * @param {object} savedProgress - 保存的进度
+ */
+function restoreLearnFlowProgress(words, savedProgress) {
+  const flow = createLearnFlow(words);
+  flow.batchIndex = savedProgress.batchIndex || 0;
+  flow.currentBatch = flow.batches[flow.batchIndex] || flow.batches[0];
+  flow.studyIndex = savedProgress.studyIndex || 0;
+  flow.phase = 'study'; // 恢复时总是从学习阶段开始（即使之前在拼写阶段）
+
+  // 恢复已掌握的单词
+  const masteredIds = new Set(savedProgress.masteredWordIds || []);
+  flow.masteredWords = words.filter(w => masteredIds.has(w.id));
+
+  // 恢复遗留错词
+  const wrongWordTexts = new Set(savedProgress.carriedWrongWords || []);
+  flow.carriedWrongWords = words.filter(w => wrongWordTexts.has(w.word));
+
+  return flow;
 }
 
 /**
@@ -1276,6 +1534,9 @@ function completeLearnBatch() {
   const flow = AppState.learnFlow;
   if (!flow) return;
 
+  // 学习完成，清除保存的进度
+  clearLearnFlowProgress(flow.words);
+
   flow.phase = 'complete';
   renderLearnComplete();
 }
@@ -1363,36 +1624,115 @@ function startSingleWordLearn(wordObj) {
 /**
  * 朗读单词（改进版：选择高质量语音引擎，优化清晰度）
  */
+/**
+ * 语音朗读缓存：已加载的语音列表
+ */
+let _cachedVoices = null;
+
+/**
+ * 初始化语音引擎（页面加载时调用）
+ * 某些浏览器需要用户交互后才能加载语音列表
+ */
+function initSpeechEngine() {
+  if (!('speechSynthesis' in window)) return;
+
+  // 尝试获取语音列表
+  const loadVoices = () => {
+    const voices = window.speechSynthesis.getVoices();
+    if (voices && voices.length > 0) {
+      _cachedVoices = voices;
+    }
+  };
+  loadVoices();
+
+  // voices 可能异步加载，监听变化
+  if (typeof speechSynthesis.onvoiceschanged !== 'undefined') {
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
+
+  // 某些浏览器需要轮询（如 Safari）
+  let attempts = 0;
+  const pollVoices = setInterval(() => {
+    attempts++;
+    if (_cachedVoices && _cachedVoices.length > 0) {
+      clearInterval(pollVoices);
+    } else {
+      loadVoices();
+    }
+    if (attempts > 10) clearInterval(pollVoices);
+  }, 200);
+}
+
+/**
+ * 朗读单词（兼容多浏览器）
+ * 使用 Web Speech API，带完善的错误处理和重试机制
+ * @param {string} word - 要朗读的单词
+ */
 function speakWord(word) {
-  if (!('speechSynthesis' in window)) {
-    showToast('您的浏览器不支持语音朗读', 'error');
+  if (!word) return;
+
+  // 检测浏览器是否支持语音合成
+  if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+    console.warn('[speakWord] 浏览器不支持语音合成');
+    showToast('当前浏览器不支持语音朗读，建议使用 Chrome 或 Edge 浏览器', 'error');
     return;
   }
 
-  window.speechSynthesis.cancel();
+  try {
+    // 取消之前的朗读（避免排队堆积）
+    window.speechSynthesis.cancel();
 
-  const settings = settingsStorage.getSettings();
-  const utterance = new SpeechSynthesisUtterance(word);
-  utterance.lang = 'en-US';
-  utterance.rate = settings.voiceRate || 0.85;
-  utterance.pitch = 1.0;
-  utterance.volume = 1.0;
+    // 短暂延迟后开始新的朗读（部分浏览器需要这个间隔）
+    setTimeout(() => {
+      const settings = settingsStorage.getSettings();
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = 'en-US';
+      utterance.rate = settings.voiceRate || 0.85;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
 
-  // 尝试选择高质量的英语语音引擎
-  const voices = window.speechSynthesis.getVoices();
-  if (voices && voices.length > 0) {
-    const preferred =
-      voices.find((v) => v.name.includes('Google') && v.lang === 'en-US') ||
-      voices.find((v) => v.name.includes('Microsoft') && v.lang === 'en-US') ||
-      voices.find((v) => v.name.includes('Samantha')) ||
-      voices.find((v) => v.lang === 'en-US') ||
-      voices.find((v) => v.lang && v.lang.startsWith('en'));
-    if (preferred) {
-      utterance.voice = preferred;
-    }
+      // 获取语音列表（优先使用缓存，避免每次都调用 getVoices）
+      let voices = _cachedVoices;
+      if (!voices || voices.length === 0) {
+        voices = window.speechSynthesis.getVoices();
+        if (voices && voices.length > 0) _cachedVoices = voices;
+      }
+
+      // 选择最佳英语语音引擎
+      if (voices && voices.length > 0) {
+        const preferred =
+          voices.find((v) => v.name && v.name.includes('Google') && v.lang === 'en-US') ||
+          voices.find((v) => v.name && v.name.includes('Microsoft') && v.lang === 'en-US') ||
+          voices.find((v) => v.name && v.name.includes('Samantha')) ||
+          voices.find((v) => v.lang === 'en-US') ||
+          voices.find((v) => v.lang && v.lang.startsWith('en'));
+        if (preferred) {
+          utterance.voice = preferred;
+        }
+      }
+
+      // 错误处理：朗读失败时提示
+      utterance.onerror = (event) => {
+        console.warn('[speakWord] 朗读失败:', event.error);
+        // 某些错误（如 interrupted）不需要提示用户
+        if (event.error && event.error !== 'interrupted' && event.error !== 'canceled') {
+          console.warn('[speakWord] 语音引擎错误:', event.error);
+        }
+      };
+
+      // 确保 speechSynthesis 处于运行状态
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+
+      window.speechSynthesis.speak(utterance);
+
+      // Chrome bug 修复：长时间不说话后引擎会"休眠"，需要 resume 唤醒
+      window.speechSynthesis.resume();
+    }, 50);
+  } catch (e) {
+    console.error('[speakWord] 异常:', e);
   }
-
-  window.speechSynthesis.speak(utterance);
 }
 
 /**
@@ -2989,9 +3329,9 @@ const VocabTestModule = {
 
   /**
    * 构建 4 个难度的词库
-   * - 小白(beginner)：教材内 collins 1-2 星（基础词汇）
-   * - 普通(normal)：教材内 collins 3 星左右（中等词汇）
-   * - 中等(medium)：教材内 collins 4-5 星或 oxford 3000（较难词汇）
+   * - 小白(beginner)：教材内 collins 4-5 星或 oxford 3000（最常用、最简单）
+   * - 普通(normal)：教材内 collins 3 星（较常用）
+   * - 中等(medium)：教材内 collins 1-2 星（较少用、较难）
    * - 地狱(hell)：词典中不在教材内的词（教材外词汇）
    * @param {Array} dict - wordService._dictionary
    * @returns {Object} { beginner:[], normal:[], medium:[], hell:[] }
@@ -3013,11 +3353,15 @@ const VocabTestModule = {
 
       if (isInTextbook) {
         // 教材内：按 collins 星级分到前三个难度
-        if (collins >= 1 && collins <= 2) {
+        // Collins 星级越高 = 词越常用 = 越简单
+        if ((collins >= 4 && collins <= 5) || oxford === 1) {
+          // 4-5星或Oxford 3000：最常用、最简单 → 小白难度
           pools.beginner.push(w);
         } else if (collins === 3) {
+          // 3星：较常用 → 普通难度
           pools.normal.push(w);
-        } else if ((collins >= 4 && collins <= 5) || oxford === 1) {
+        } else if (collins >= 1 && collins <= 2) {
+          // 1-2星：较少用、较难 → 中等难度
           pools.medium.push(w);
         }
         // collins 0 的教材词不纳入前三个难度（样本充足，无需兜底）
