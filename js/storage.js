@@ -19,13 +19,16 @@ class ProgressStorage {
    * 保存单词学习进度
    * @param {number} wordId - 单词ID
    * @param {'learning'|'mastered'|'review'} status - 学习状态
+   * @param {string} [wordText] - 单词文本（可选，用于复习时查找教材单词）
    */
-  saveProgress(wordId, status) {
+  saveProgress(wordId, status, wordText) {
     try {
       const progress = this.getAllProgress();
+      const existing = progress[String(wordId)] || {};
       progress[String(wordId)] = {
         status: status,
         updatedAt: Date.now(),
+        word: wordText || existing.word || '',  // 保存单词文本，用于跨数据源查找
       };
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(progress));
     } catch (e) {

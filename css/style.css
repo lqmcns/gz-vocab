@@ -1210,6 +1210,194 @@ select:focus {
   }
 }
 
+/* ---------- 手机端深度优化（针对小屏手机） ---------- */
+@media (max-width: 480px) {
+  /* 导航栏：8个标签太挤，允许横向滚动 + 缩小间距 */
+  .navbar-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .navbar-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .navbar-nav a {
+    flex-shrink: 0;
+    padding: 0.3rem 0.45rem;
+    font-size: 0.65rem;
+  }
+  .navbar-nav a .nav-icon {
+    font-size: 1.1rem;
+  }
+
+  /* 主内容区域减少 padding */
+  .main-content {
+    padding: 0.75rem 0.5rem;
+    padding-bottom: 80px;
+  }
+
+  /* 首页欢迎区 */
+  .dashboard {
+    gap: 0.5rem;
+  }
+
+  /* 快捷操作按钮：紧凑布局 */
+  .quick-actions {
+    gap: 0.4rem;
+  }
+  .quick-action-btn {
+    padding: 0.75rem 0.5rem;
+    border-radius: 10px;
+  }
+  .quick-action-btn .action-icon {
+    font-size: 1.1rem;
+  }
+  .quick-action-btn .action-label {
+    font-size: 0.7rem;
+  }
+
+  /* 单词卡片：手机端优化 */
+  .word-card {
+    padding: 1rem 0.85rem;
+    border-radius: 14px;
+  }
+  .word-card .word-text {
+    font-size: 1.4rem;
+    margin-bottom: 0.25rem;
+  }
+  .word-card .word-phonetic {
+    font-size: 0.85rem;
+  }
+  .word-card .word-translation {
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  /* 学习阶段进度条/横幅 */
+  .learn-phase-banner {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* 拼写测试区域 */
+  .spell-area {
+    padding: 0.75rem;
+  }
+  .spell-options {
+    gap: 0.4rem;
+  }
+  .spell-option-btn {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.9rem;
+    border-radius: 8px;
+  }
+
+  /* 按钮组：手机端紧凑 */
+  .btn {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+  }
+  .btn-sm {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+  }
+  .btn-lg {
+    padding: 0.7rem 1.2rem;
+    font-size: 1rem;
+  }
+
+  /* 单词操作按钮：保持横向但缩小 */
+  .word-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .word-actions .btn {
+    flex: 1;
+    min-width: 80px;
+    font-size: 0.8rem;
+  }
+
+  /* 卡片通用 */
+  .card {
+    border-radius: 10px;
+    padding: 0.85rem;
+  }
+
+  /* 词汇检测选项 */
+  .vocab-test-options {
+    gap: 0.4rem;
+  }
+  .vocab-test-option {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  /* 查词搜索框 */
+  .search-box {
+    padding: 0.5rem 0.75rem;
+  }
+  .search-box input {
+    font-size: 0.9rem;
+  }
+
+  /* 教材选择下拉框 */
+  select {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  /* Toast 提示 */
+  .toast {
+    max-width: 90vw;
+    font-size: 0.8rem;
+    padding: 0.6rem 0.85rem;
+    bottom: 70px;
+  }
+
+  /* 自定义模态框 */
+  .custom-modal {
+    padding: 1.1rem;
+    max-width: 92vw;
+  }
+
+  /* 已学单词列表项 */
+  .learned-word-item {
+    padding: 0.5rem;
+  }
+  .learned-word-text {
+    font-size: 0.9rem;
+  }
+  .learned-word-translation {
+    font-size: 0.75rem;
+  }
+
+  /* 进度条 */
+  .progress-bar {
+    height: 6px;
+  }
+}
+
+/* ---------- 超小屏手机（<=360px） ---------- */
+@media (max-width: 360px) {
+  .navbar-nav a {
+    padding: 0.25rem 0.35rem;
+    font-size: 0.6rem;
+  }
+  .navbar-nav a .nav-icon {
+    font-size: 1rem;
+  }
+  .quick-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+  .word-card .word-text {
+    font-size: 1.25rem;
+  }
+}
+
 /* ---------- 工具类 ---------- */
 .text-center {
   text-align: center;

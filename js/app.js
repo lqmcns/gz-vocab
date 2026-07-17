@@ -625,26 +625,91 @@ function getGreeting() {
 /**
  * 开始复习已有单词
  */
+/**
+ * 全局查找单词数据（跨数据源）
+ * 优先从 wordService 查找，找不到则从 textbookService 词典查找
+ * @param {number} id - 单词ID
+ * @param {string} [wordText] - 单词文本（可选，用于教材单词的 fallback 查找）
+ * @returns {object|null} 单词数据对象
+ */
+function getWordDataGlobal(id, wordText) {
+  // 1. 先从主词库查找
+  if (window.wordService && wordService.isLoaded()) {
+    const word = wordService.getWordById(id);
+    if (word) return word;
+  }
+
+  // 2. 主词库找不到，用单词文本从教材词典查找
+  if (wordText && window.textbookService && textbookService._dict) {
+    const lower = wordText.toLowerCase().trim();
+    if (textbookService._dictMap && textbookService._dictMap[lower]) {
+      const entry = textbookService._dictMap[lower];
+      return {
+        id: id,
+        word: entry.word || wordText,
+        phonetic: entry.phonetic || '',
+        translation: entry.translation || '',
+        pos: entry.pos || '',
+        collins: entry.collins || 0,
+        oxford: entry.oxford || 0,
+      };
+    }
+    // 3. 教材词典也没有，尝试从 gk3500 查找
+    if (window.wordService && wordService._dictionary) {
+      if (!textbookService._gkMap) {
+        const dict = wordService._dictionary;
+        textbookService._gkMap = {};
+        for (const entry of dict) {
+          if (entry && entry.word) {
+            textbookService._gkMap[entry.word.toLowerCase()] = entry;
+          }
+        }
+      }
+      if (textbookService._gkMap[lower]) {
+        const entry = textbookService._gkMap[lower];
+        return {
+          id: id,
+          word: entry.word || wordText,
+          phonetic: entry.phonetic || '',
+          translation: entry.translation || '',
+          pos: entry.pos || '',
+          collins: entry.collins || 0,
+          oxford: entry.oxford || 0,
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
 function startReview() {
   const progress = progressStorage.getAllProgress();
-  const reviewIds = Object.keys(progress)
-    .filter((id) => {
-      const item = progress[id];
+  const reviewEntries = Object.entries(progress)
+    .filter(([id, item]) => {
       return item.status === 'review' || item.status === 'learning' || item.status === 'mastered';
-    })
-    .map(Number);
+    });
 
-  if (reviewIds.length === 0) {
+  if (reviewEntries.length === 0) {
     showToast('暂无需要复习的单词，快去学习新词吧', 'info');
     return;
   }
 
   const settings = settingsStorage.getSettings();
-  const batchIds = randomPick(reviewIds, Math.min(settings.batchSize, reviewIds.length));
-  const batchWords = batchIds.map((id) => wordService.getWordById(id)).filter(Boolean);
+  const batchCount = Math.min(settings.batchSize, reviewEntries.length);
+
+  // 随机选一批
+  const shuffled = [...reviewEntries].sort(() => Math.random() - 0.5);
+  const selected = shuffled.slice(0, batchCount);
+
+  // 跨数据源查找单词数据
+  const batchWords = selected.map(([id, item]) => {
+    return getWordDataGlobal(parseInt(id, 10), item.word);
+  }).filter(Boolean);
 
   if (batchWords.length === 0) {
-    showToast('无法获取单词数据', 'error');
+    showToast('无法获取单词数据，请尝试重新学习', 'error');
+    console.warn('[startReview] 无法查找单词数据', selected);
     return;
   }
 
@@ -1471,7 +1536,7 @@ function onLearnSpellComplete(result) {
   const newlyMastered = flow.currentBatch.filter(w => !wrongSet.has(w.word));
   for (const word of newlyMastered) {
     if (word.id) {
-      progressStorage.saveProgress(word.id, 'mastered');
+      progressStorage.saveProgress(word.id, 'mastered', word.word);
     }
     if (!flow.masteredWords.find(m => m.word === word.word)) {
       flow.masteredWords.push(word);
@@ -1482,7 +1547,7 @@ function onLearnSpellComplete(result) {
   const carriedMastered = flow.carriedWrongWords.filter(w => !wrongSet.has(w.word));
   for (const word of carriedMastered) {
     if (word.id) {
-      progressStorage.saveProgress(word.id, 'mastered');
+      progressStorage.saveProgress(word.id, 'mastered', word.word);
     }
     if (!flow.masteredWords.find(m => m.word === word.word)) {
       flow.masteredWords.push(word);
@@ -2265,7 +2330,7 @@ function renderLearnedWords() {
 
   for (const [id, info] of progressEntries) {
     const wordId = parseInt(id, 10);
-    const word = wordService.getWordById(wordId);
+    const word = getWordDataGlobal(wordId, info.word);
     if (!word) continue;
 
     const wordData = {
