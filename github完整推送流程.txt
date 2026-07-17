@@ -1,0 +1,57 @@
+完整推送流程
+下面是我帮你操作的完整步骤，按顺序是：
+
+第1步：初始化仓库
+
+Plain Text
+
+git init
+在项目文件夹里创建 .git 隐藏目录，把这个文件夹变成一个 Git 仓库。只需要执行一次，以后不用再执行。
+
+第2步：关联远程仓库
+
+Plain Text
+
+git remote add origin https://github.com/lqmcns/gz-vocab.git
+告诉本地仓库："你的远程地址是这个 GitHub 仓库"。origin 是远程仓库的别名，约定俗成叫这个名字。也只需要执行一次。
+
+第3步：编写 .gitignore
+这个文件告诉 Git 哪些文件不要上传。我帮你排除了：
+
+biji-zhidao-app/（参考项目，不需要部署）
+设计大全/（设计参考素材）
+local-proxy/（本地代理，GitHub Pages 用不了）
+高中英语3500词汇必修_...（词汇表截图，123张图片，不需要部署）
+.trae/（编辑器内部文件）
+如果不写 .gitignore，那 123 张截图和一堆无关文件全都会被推上去，仓库会非常臃肿。
+
+第4步：添加文件到暂存区
+
+Plain Text
+
+git add .
+把当前文件夹里所有没有被 .gitignore 排除的文件，标记为"准备提交"。.gitignore 排除的文件会被自动跳过。
+
+第5步：提交
+
+Plain Text
+
+git commit -m "提交说明"
+把暂存区的文件打包成一个提交记录（快照），附带说明信息。这一步是保存在本地的，还没上传到 GitHub。
+
+第6步：推送
+
+Plain Text
+
+git push -u origin main
+把本地的 main 分支推送到远程仓库 origin。-u 表示建立关联关系，以后只需执行 git push 不用再写全名。第一次推送时需要登录授权（你用的浏览器授权方式）。
+
+以后更新代码
+只需要三步：
+
+
+Plain Text
+
+git add .
+git commit -m "说明改了什么"
+git push
