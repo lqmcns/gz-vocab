@@ -144,6 +144,18 @@
       </div>
     </div>
 
+    <!-- 短语学习开关 -->
+    <div class="setting-group">
+      <div class="setting-label">学习短语</div>
+      <div class="setting-desc">是否将单元中的短语（如 add up, calm down）也纳入学习范围。关闭则只学单个单词</div>
+      <div class="setting-control flex-between">
+        <label class="toggle-switch">
+          <input type="checkbox" id="setting-learn-phrases" onchange="updateLearnPhrases(this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
     <!-- 清除数据 -->
     <div class="setting-group" style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1rem;">
       <div class="setting-label text-danger">数据管理</div>

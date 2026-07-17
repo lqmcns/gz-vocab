@@ -232,6 +232,7 @@ class SettingsStorage {
       darkMode: false,     // 暗色模式
       voiceRate: 0.85,     // 语音朗读速度
       spellMode: 'partial', // 拼写模式：'partial' | 'full' | 'manual'
+      learnPhrases: false,  // 是否学习短语（默认关闭，只学单个单词）
     };
   }
 

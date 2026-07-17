@@ -835,6 +835,36 @@ select:focus {
   stroke: var(--accent) !important;
 }
 
+/* 单词表页面的播放按钮：确保暗色模式可见 */
+.wordlist-speak-btn {
+  background: var(--accent-light);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 0.3rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  transition: all 0.2s;
+}
+.wordlist-speak-btn:hover {
+  background: var(--accent);
+  color: #ffffff;
+}
+.wordlist-speak-btn:hover svg {
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
+}
+.wordlist-speak-btn:active {
+  transform: scale(0.92);
+}
+.wordlist-speak-btn svg {
+  color: var(--accent) !important;
+  fill: var(--accent) !important;
+  stroke: var(--accent) !important;
+}
+
 .word-card .word-translation {
   font-size: 1.25rem;
   color: var(--text-primary);

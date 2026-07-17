@@ -303,6 +303,17 @@ function navigate(section) {
       renderHome();
       break;
     case 'learn':
+      // 首次进入学习页面时，自动展开设置面板让用户配置
+      if (!localStorage.getItem('vocab-visited-learn')) {
+        localStorage.setItem('vocab-visited-learn', '1');
+        setTimeout(() => {
+          const settingsPanel = document.getElementById('settings-panel');
+          const settingsOverlay = document.getElementById('settings-overlay');
+          if (settingsPanel) settingsPanel.classList.add('open');
+          if (settingsOverlay) settingsOverlay.classList.add('open');
+          showToast('首次使用，请先配置学习设置', 'info');
+        }, 300);
+      }
       renderLearn();
       break;
     case 'spell':
@@ -397,6 +408,8 @@ function syncSettingsUI() {
   if (voiceRateDisplay) voiceRateDisplay.textContent = settings.voiceRate + 'x';
   if (darkModeToggle) darkModeToggle.checked = settings.darkMode;
   if (spellModeSelect) spellModeSelect.value = settings.spellMode || 'partial';
+  const learnPhrasesToggle = document.getElementById('setting-learn-phrases');
+  if (learnPhrasesToggle) learnPhrasesToggle.checked = settings.learnPhrases === true;
   const workerUrlInput = document.getElementById('setting-worker-url');
   if (workerUrlInput) workerUrlInput.value = settings.workerUrl || 'https://api.deepseek.com/chat/completions';
 }
@@ -438,6 +451,14 @@ function updateSpellMode(value) {
     manual: '手动拼写',
   };
   showToast(`拼写方式已设为：${modeNames[value]}`, 'success');
+}
+
+/**
+ * 更新是否学习短语设置
+ */
+function updateLearnPhrases(checked) {
+  settingsStorage.saveSetting('learnPhrases', checked === true || checked === 'true');
+  showToast(checked ? '已开启短语学习' : '已关闭短语学习，只学单个单词', 'success');
 }
 
 /**
@@ -1101,10 +1122,12 @@ function startLearnFromSource() {
       wordItems = textbookService.getUnitWordsWithDict(book, parseInt(unitValue, 10));
     }
 
-    // 不过滤短语，短语也参与学习（短语在拼写阶段使用手动输入模式）
+    // 根据设置决定是否过滤短语（默认只学单个单词，不学短语）
+    const learnPhrases = settingsStorage.getSetting('learnPhrases');
     let fakeIdBase = 9000000 + book * 1000 + (unitValue === 'all' ? 0 : parseInt(unitValue, 10) * 10);
     let fakeIdx = 0;
     batchWords = wordItems
+      .filter((item) => learnPhrases || !item.isPhrase)
       .map((item) => {
         const entry = textbookService.matchWordToDictionary(item.word);
         const id = entry && entry.id ? entry.id : (fakeIdBase + fakeIdx++);
@@ -1868,74 +1891,151 @@ function initSpeechEngine() {
 }
 
 /**
- * 朗读单词（兼容多浏览器）
- * 使用 Web Speech API，带完善的错误处理和重试机制
+ * 检查系统是否有英语语音引擎
+ * @returns {boolean}
+ */
+function _hasEnglishVoice() {
+  if (!('speechSynthesis' in window)) return false;
+  let voices = _cachedVoices;
+  if (!voices || voices.length === 0) {
+    voices = window.speechSynthesis.getVoices();
+    if (voices && voices.length > 0) _cachedVoices = voices;
+  }
+  if (!voices || voices.length === 0) return false;
+  return voices.some((v) => v.lang && v.lang.startsWith('en'));
+}
+
+/**
+ * 音频缓存：避免重复请求 dictionaryapi.dev
+ */
+const _audioUrlCache = {};
+const _audioElementCache = {};
+
+/**
+ * 通过 dictionaryapi.dev 获取真人发音并播放（降级方案）
+ * 免费、无需 API key
+ * @param {string} word - 要朗读的单词
+ */
+function _speakWithOnlineAudio(word) {
+  const cleanWord = word.toLowerCase().trim().split(/[\s.\/]/)[0]; // 短语取第一个词
+  if (!cleanWord) return;
+
+  // 如果已有缓存的 Audio 对象，直接播放
+  if (_audioElementCache[cleanWord]) {
+    const audio = _audioElementCache[cleanWord];
+    audio.currentTime = 0;
+    audio.play().catch((e) => {
+      console.warn('[speakWord] 在线音频播放失败:', e);
+    });
+    return;
+  }
+
+  // 先查 URL 缓存，避免重复网络请求
+  if (_audioUrlCache[cleanWord] === false) {
+    // 之前查过，没有音频
+    return;
+  }
+
+  const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanWord)}`;
+  fetch(apiUrl)
+    .then((r) => {
+      if (!r.ok) {
+        _audioUrlCache[cleanWord] = false;
+        return null;
+      }
+      return r.json();
+    })
+    .then((data) => {
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        _audioUrlCache[cleanWord] = false;
+        return;
+      }
+      const phonetics = data[0].phonetics || [];
+      const withAudio = phonetics.find((p) => p.audio && p.audio.length > 0);
+      if (!withAudio) {
+        _audioUrlCache[cleanWord] = false;
+        return;
+      }
+      _audioUrlCache[cleanWord] = withAudio.audio;
+
+      // 创建 Audio 对象并播放
+      const audio = new Audio(withAudio.audio);
+      _audioElementCache[cleanWord] = audio;
+      audio.play().catch((e) => {
+        console.warn('[speakWord] 音频播放失败:', e);
+      });
+    })
+    .catch((e) => {
+      console.warn('[speakWord] 获取在线发音失败:', e);
+      _audioUrlCache[cleanWord] = false;
+    });
+}
+
+/**
+ * 朗读单词（兼容多浏览器，自动降级）
+ * 优先使用 Web Speech API（如果有英语引擎）
+ * 降级使用 dictionaryapi.dev 真人发音（免费、无需 API key）
  * @param {string} word - 要朗读的单词
  */
 function speakWord(word) {
   if (!word) return;
 
-  // 检测浏览器是否支持语音合成
-  if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
-    console.warn('[speakWord] 浏览器不支持语音合成');
-    showToast('当前浏览器不支持语音朗读，建议使用 Chrome 或 Edge 浏览器', 'error');
-    return;
-  }
+  // 检查是否有英语语音引擎
+  if (_hasEnglishVoice()) {
+    // 使用 Web Speech API
+    if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+      _speakWithOnlineAudio(word);
+      return;
+    }
 
-  try {
-    // 取消之前的朗读（避免排队堆积）
-    window.speechSynthesis.cancel();
+    try {
+      window.speechSynthesis.cancel();
+      setTimeout(() => {
+        const settings = settingsStorage.getSettings();
+        const utterance = new SpeechSynthesisUtterance(word);
+        utterance.lang = 'en-US';
+        utterance.rate = settings.voiceRate || 0.85;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
 
-    // 短暂延迟后开始新的朗读（部分浏览器需要这个间隔）
-    setTimeout(() => {
-      const settings = settingsStorage.getSettings();
-      const utterance = new SpeechSynthesisUtterance(word);
-      utterance.lang = 'en-US';
-      utterance.rate = settings.voiceRate || 0.85;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
-
-      // 获取语音列表（优先使用缓存，避免每次都调用 getVoices）
-      let voices = _cachedVoices;
-      if (!voices || voices.length === 0) {
-        voices = window.speechSynthesis.getVoices();
-        if (voices && voices.length > 0) _cachedVoices = voices;
-      }
-
-      // 选择最佳英语语音引擎
-      if (voices && voices.length > 0) {
-        const preferred =
-          voices.find((v) => v.name && v.name.includes('Google') && v.lang === 'en-US') ||
-          voices.find((v) => v.name && v.name.includes('Microsoft') && v.lang === 'en-US') ||
-          voices.find((v) => v.name && v.name.includes('Samantha')) ||
-          voices.find((v) => v.lang === 'en-US') ||
-          voices.find((v) => v.lang && v.lang.startsWith('en'));
-        if (preferred) {
-          utterance.voice = preferred;
+        let voices = _cachedVoices;
+        if (!voices || voices.length === 0) {
+          voices = window.speechSynthesis.getVoices();
+          if (voices && voices.length > 0) _cachedVoices = voices;
         }
-      }
 
-      // 错误处理：朗读失败时提示
-      utterance.onerror = (event) => {
-        console.warn('[speakWord] 朗读失败:', event.error);
-        // 某些错误（如 interrupted）不需要提示用户
-        if (event.error && event.error !== 'interrupted' && event.error !== 'canceled') {
-          console.warn('[speakWord] 语音引擎错误:', event.error);
+        if (voices && voices.length > 0) {
+          const preferred =
+            voices.find((v) => v.name && v.name.includes('Google') && v.lang === 'en-US') ||
+            voices.find((v) => v.name && v.name.includes('Microsoft') && v.lang === 'en-US') ||
+            voices.find((v) => v.name && v.name.includes('Samantha')) ||
+            voices.find((v) => v.lang === 'en-US') ||
+            voices.find((v) => v.lang && v.lang.startsWith('en'));
+          if (preferred) {
+            utterance.voice = preferred;
+          }
         }
-      };
 
-      // 确保 speechSynthesis 处于运行状态
-      if (window.speechSynthesis.paused) {
+        utterance.onerror = (event) => {
+          console.warn('[speakWord] Web Speech 朗读失败，降级到在线音频:', event.error);
+          if (event.error && event.error !== 'interrupted' && event.error !== 'canceled') {
+            _speakWithOnlineAudio(word);
+          }
+        };
+
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+        window.speechSynthesis.speak(utterance);
         window.speechSynthesis.resume();
-      }
-
-      window.speechSynthesis.speak(utterance);
-
-      // Chrome bug 修复：长时间不说话后引擎会"休眠"，需要 resume 唤醒
-      window.speechSynthesis.resume();
-    }, 50);
-  } catch (e) {
-    console.error('[speakWord] 异常:', e);
+      }, 50);
+    } catch (e) {
+      console.error('[speakWord] Web Speech 异常，降级到在线音频:', e);
+      _speakWithOnlineAudio(word);
+    }
+  } else {
+    // 没有英语语音引擎，直接用在线真人发音
+    _speakWithOnlineAudio(word);
   }
 }
 
