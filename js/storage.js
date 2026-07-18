@@ -13,6 +13,8 @@ class ProgressStorage {
   constructor() {
     // localStorage 键名
     this.STORAGE_KEY = 'vocab-progress';
+    // 云端同步防抖计时器
+    this._cloudSyncTimer = null;
   }
 
   /**
@@ -31,9 +33,81 @@ class ProgressStorage {
         word: wordText || existing.word || '',  // 保存单词文本，用于跨数据源查找
       };
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(progress));
+      // 触发云端同步（防抖，避免频繁请求）
+      this._scheduleCloudSync();
     } catch (e) {
       console.error('[ProgressStorage] 保存进度失败:', e);
     }
+  }
+
+  /**
+   * 防抖同步到云端（2秒内的多次保存只同步一次）
+   */
+  _scheduleCloudSync() {
+    // 只在登录状态下同步
+    if (typeof AuthService === 'undefined' || !AuthService.isLoggedIn()) return;
+    
+    // 清除之前的计时器
+    if (this._cloudSyncTimer) {
+      clearTimeout(this._cloudSyncTimer);
+    }
+    
+    // 2秒后执行同步
+    this._cloudSyncTimer = setTimeout(() => {
+      this._syncToCloud();
+    }, 2000);
+  }
+
+  /**
+   * 执行云端同步
+   */
+  async _syncToCloud() {
+    if (typeof AuthService === 'undefined' || !AuthService.isLoggedIn()) return;
+    
+    try {
+      const progress = this.getAllProgress();
+      const stats = this.getProgressStats();
+      const data = {
+        username: AuthService.getUsername(),
+        learned: progress,
+        stats: stats,
+        updatedAt: new Date().toISOString(),
+      };
+      await AuthService.saveCloudData(data);
+      console.log('[ProgressStorage] 云端同步成功');
+    } catch (e) {
+      console.warn('[ProgressStorage] 云端同步失败:', e);
+    }
+  }
+
+  /**
+   * 从云端加载学习数据（登录后调用）
+   */
+  async loadFromCloud() {
+    if (typeof AuthService === 'undefined' || !AuthService.isLoggedIn()) return false;
+    
+    try {
+      const cloudData = await AuthService.loadCloudData();
+      if (cloudData && cloudData.learned) {
+        // 合并云端数据和本地数据（取最新的）
+        const localProgress = this.getAllProgress();
+        const merged = { ...localProgress };
+        
+        for (const [wordId, cloudEntry] of Object.entries(cloudData.learned)) {
+          const localEntry = merged[wordId];
+          if (!localEntry || (cloudEntry.updatedAt > localEntry.updatedAt)) {
+            merged[wordId] = cloudEntry;
+          }
+        }
+        
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(merged));
+        console.log('[ProgressStorage] 云端数据加载成功，合并了', Object.keys(cloudData.learned).length, '条记录');
+        return true;
+      }
+    } catch (e) {
+      console.warn('[ProgressStorage] 加载云端数据失败:', e);
+    }
+    return false;
   }
 
   /**

@@ -66,6 +66,17 @@ async function init() {
       renderHome();
     }
 
+    // 6. 如果已登录（从 localStorage 恢复了 session），加载云端数据
+    if (typeof AuthService !== 'undefined' && AuthService.isLoggedIn()) {
+      if (typeof progressStorage !== 'undefined' && progressStorage.loadFromCloud) {
+        progressStorage.loadFromCloud().then((loaded) => {
+          if (loaded && AppState.currentSection === 'home') {
+            renderHome(); // 重新渲染首页更新进度数字
+          }
+        }).catch(e => console.warn('[App] 加载云端数据失败:', e));
+      }
+    }
+
     console.log('[App] 初始化完成');
   } catch (error) {
     console.error('[App] 初始化失败:', error);
@@ -386,6 +397,8 @@ function toggleSettings(open) {
     overlay.classList.add('open');
     // 打开时同步当前设置到控件
     syncSettingsUI();
+    // 更新账号状态显示
+    if (typeof updateAccountUI === 'function') updateAccountUI();
   } else {
     panel.classList.remove('open');
     overlay.classList.remove('open');
@@ -694,17 +707,27 @@ function renderHome() {
 }
 
 /**
- * 根据时间段获取问候语
+ * 根据时间段获取问候语（登录后附带用户名）
  */
 function getGreeting() {
   const hour = new Date().getHours();
-  if (hour < 6) return '夜深了，注意休息';
-  if (hour < 9) return '早上好，开始背单词吧';
-  if (hour < 12) return '上午好，加油学习';
-  if (hour < 14) return '中午好，适当休息一下';
-  if (hour < 18) return '下午好，继续努力';
-  if (hour < 22) return '晚上好，坚持就是胜利';
-  return '夜深了，注意休息';
+  let greeting;
+  if (hour < 6) greeting = '夜深了，注意休息';
+  else if (hour < 9) greeting = '早上好，开始背单词吧';
+  else if (hour < 12) greeting = '上午好，加油学习';
+  else if (hour < 14) greeting = '中午好，适当休息一下';
+  else if (hour < 18) greeting = '下午好，继续努力';
+  else if (hour < 22) greeting = '晚上好，坚持就是胜利';
+  else greeting = '夜深了，注意休息';
+
+  // 登录后在问候语后加用户名
+  if (typeof AuthService !== 'undefined' && AuthService.isLoggedIn()) {
+    const nickname = AuthService.getNickname();
+    if (nickname) {
+      greeting += '，' + nickname;
+    }
+  }
+  return greeting;
 }
 
 /**
@@ -1027,6 +1050,11 @@ function renderLearnStart() {
  * 开始新的学习批次
  */
 function startNewBatch() {
+  // 登录检查：未登录则弹出登录框
+  if (typeof AuthService !== 'undefined' && !AuthService.requireLogin()) {
+    return;
+  }
+
   const settings = settingsStorage.getSettings();
   const totalCount = wordService.getTotalCount();
 
@@ -4715,3 +4743,166 @@ window.renderSearch = renderSearch;
 window.performSearch = performSearch;
 // 教材服务
 window.textbookService = textbookService;
+
+/* ===========================
+   用户认证 UI 逻辑
+   =========================== */
+
+// 当前认证模式：'login' 或 'register'
+var _authMode = 'login';
+
+/**
+ * 显示登录/注册弹窗
+ * @param {string} mode - 'login' 或 'register'
+ */
+function showAuthModal(mode) {
+  _authMode = mode || 'login';
+  const overlay = document.getElementById('auth-overlay');
+  const modal = document.getElementById('auth-modal');
+  const title = document.getElementById('auth-modal-title');
+  const submitBtn = document.getElementById('auth-submit-btn');
+  const switchText = document.getElementById('auth-switch-text');
+  const switchLink = document.getElementById('auth-switch-link');
+  const errorDiv = document.getElementById('auth-error');
+
+  if (_authMode === 'register') {
+    title.textContent = '注册';
+    submitBtn.textContent = '注册';
+    switchText.textContent = '已有账号？';
+    switchLink.textContent = '登录';
+  } else {
+    title.textContent = '登录';
+    submitBtn.textContent = '登录';
+    switchText.textContent = '还没有账号？';
+    switchLink.textContent = '注册';
+  }
+
+  // 清空表单和错误
+  document.getElementById('auth-username').value = '';
+  document.getElementById('auth-password').value = '';
+  errorDiv.style.display = 'none';
+  errorDiv.textContent = '';
+
+  overlay.classList.add('open');
+  modal.classList.add('open');
+
+  // 聚焦用户名输入框
+  setTimeout(() => document.getElementById('auth-username').focus(), 300);
+}
+
+/**
+ * 隐藏登录/注册弹窗
+ */
+function hideAuthModal() {
+  document.getElementById('auth-overlay').classList.remove('open');
+  document.getElementById('auth-modal').classList.remove('open');
+}
+
+/**
+ * 切换登录/注册模式
+ */
+function switchAuthMode() {
+  showAuthModal(_authMode === 'login' ? 'register' : 'login');
+}
+
+/**
+ * 处理登录/注册表单提交
+ */
+async function handleAuthSubmit(event) {
+  event.preventDefault();
+
+  const username = document.getElementById('auth-username').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errorDiv = document.getElementById('auth-error');
+  const submitBtn = document.getElementById('auth-submit-btn');
+
+  // 隐藏之前的错误
+  errorDiv.style.display = 'none';
+  errorDiv.textContent = '';
+
+  // 禁用按钮，防止重复提交
+  submitBtn.disabled = true;
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = '处理中...';
+
+  try {
+    if (_authMode === 'register') {
+      await AuthService.register(username, password);
+      showToast('注册成功，欢迎加入！', 'success');
+    } else {
+      await AuthService.login(username, password);
+      showToast('登录成功，正在同步数据...', 'success');
+      // 登录后从云端加载学习数据
+      if (typeof progressStorage !== 'undefined' && progressStorage.loadFromCloud) {
+        const loaded = await progressStorage.loadFromCloud();
+        if (loaded) {
+          showToast('云端数据同步完成', 'success');
+        }
+      }
+    }
+
+    hideAuthModal();
+
+    // 登录/注册成功后，更新 UI
+    updateAccountUI();
+    // 重新渲染首页（更新问候语）
+    if (AppState.currentSection === 'home') {
+      renderHome();
+    }
+
+    // 如果之前是要学习但被登录拦截了，登录成功后继续学习
+    // （用户需要再次点击学习按钮）
+  } catch (e) {
+    errorDiv.textContent = e.message || '操作失败，请重试';
+    errorDiv.style.display = 'block';
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  }
+}
+
+/**
+ * 退出登录
+ */
+function handleLogout() {
+  if (!confirm('确定要退出登录吗？\n退出后学习进度将不再同步到云端，但本地数据不会丢失。')) {
+    return;
+  }
+  AuthService.logout();
+  showToast('已退出登录', 'info');
+  updateAccountUI();
+  // 重新渲染首页（更新问候语）
+  if (AppState.currentSection === 'home') {
+    renderHome();
+  }
+}
+
+/**
+ * 更新设置面板中的账号状态显示
+ */
+function updateAccountUI() {
+  const desc = document.getElementById('account-status-desc');
+  const actions = document.getElementById('account-actions');
+
+  if (!desc || !actions) return;
+
+  if (AuthService.isLoggedIn()) {
+    const user = AuthService.getCurrentUser();
+    desc.innerHTML = `已登录：<strong>${user.nickname}</strong>（${user.username}）<br>学习进度自动同步到云端`;
+    actions.innerHTML = `<button class="btn btn-danger btn-sm" onclick="handleLogout()">退出登录</button>`;
+  } else {
+    desc.textContent = '未登录，学习进度仅保存在本地';
+    actions.innerHTML = `
+      <button class="btn btn-primary btn-sm" onclick="showAuthModal('login')">登录</button>
+      <button class="btn btn-secondary btn-sm" onclick="showAuthModal('register')">注册</button>
+    `;
+  }
+}
+
+// 暴露到全局
+window.showAuthModal = showAuthModal;
+window.hideAuthModal = hideAuthModal;
+window.switchAuthMode = switchAuthMode;
+window.handleAuthSubmit = handleAuthSubmit;
+window.handleLogout = handleLogout;
+window.updateAccountUI = updateAccountUI;

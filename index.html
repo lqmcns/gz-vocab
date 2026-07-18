@@ -83,6 +83,40 @@
   </nav>
 
   <!-- ===========================
+       登录/注册弹窗
+       =========================== -->
+  <div class="auth-overlay" id="auth-overlay" onclick="hideAuthModal()"></div>
+  <div class="auth-modal" id="auth-modal">
+    <div class="auth-modal-header">
+      <h3 id="auth-modal-title">登录</h3>
+      <button class="auth-close-btn" onclick="hideAuthModal()">✕</button>
+    </div>
+    <div class="auth-modal-body">
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+        <div class="auth-field">
+          <label for="auth-username">用户名</label>
+          <input type="text" id="auth-username" placeholder="3-20位字母、数字或下划线" autocomplete="username" maxlength="20" required>
+        </div>
+        <div class="auth-field">
+          <label for="auth-password">密码</label>
+          <input type="password" id="auth-password" placeholder="至少6位" autocomplete="current-password" required>
+        </div>
+        <div id="auth-error" class="auth-error" style="display:none;"></div>
+        <button type="submit" id="auth-submit-btn" class="btn btn-primary" style="width:100%; margin-top:0.5rem;">
+          登录
+        </button>
+      </form>
+      <div class="auth-switch">
+        <span id="auth-switch-text">还没有账号？</span>
+        <a href="javascript:void(0)" id="auth-switch-link" onclick="switchAuthMode()">注册</a>
+      </div>
+      <div class="auth-hint">
+        登录后学习进度将自动同步到云端，更换设备也能继续学习
+      </div>
+    </div>
+  </div>
+
+  <!-- ===========================
        设置面板遮罩
        =========================== -->
   <div class="settings-overlay" id="settings-overlay" onclick="toggleSettings(false)"></div>
@@ -156,8 +190,18 @@
       </div>
     </div>
 
-    <!-- 清除数据 -->
+    <!-- 账号管理 -->
     <div class="setting-group" style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+      <div class="setting-label">账号管理</div>
+      <div class="setting-desc" id="account-status-desc">未登录，学习进度仅保存在本地</div>
+      <div class="flex gap-1" style="margin-top: 0.5rem;" id="account-actions">
+        <button class="btn btn-primary btn-sm" onclick="showAuthModal('login')">登录</button>
+        <button class="btn btn-secondary btn-sm" onclick="showAuthModal('register')">注册</button>
+      </div>
+    </div>
+
+    <!-- 清除数据 -->
+    <div class="setting-group" style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
       <div class="setting-label text-danger">数据管理</div>
       <div class="setting-desc">
         清除进度：删除所有学习记录，单词回到未学习状态<br>
@@ -218,6 +262,8 @@
        =========================== -->
   <script src="js/utils.js"></script>
   <script src="js/storage.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
   <script src="js/word-data.js"></script>
   <script src="js/textbook-service.js"></script>
   <script src="js/syllable.js"></script>

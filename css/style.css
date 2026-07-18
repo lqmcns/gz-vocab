@@ -1661,3 +1661,130 @@ select:focus {
     opacity: 0;
   }
 }
+
+/* ===========================
+   登录/注册弹窗
+   =========================== */
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s, visibility 0.25s;
+}
+.auth-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.auth-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  width: 90%;
+  max-width: 360px;
+  background: var(--bg-card);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  z-index: 2001;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s;
+}
+.auth-modal.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.auth-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 1.5rem 0.8rem;
+  border-bottom: 1px solid var(--border);
+}
+.auth-modal-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+.auth-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.auth-close-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.auth-modal-body {
+  padding: 1.2rem 1.5rem 1.5rem;
+}
+
+.auth-field {
+  margin-bottom: 1rem;
+}
+.auth-field label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+.auth-field input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: var(--bg);
+  color: var(--text);
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.auth-field input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.auth-error {
+  color: var(--danger);
+  font-size: 0.85rem;
+  padding: 0.5rem 0.7rem;
+  background: rgba(231, 76, 60, 0.08);
+  border-radius: 6px;
+  margin-top: 0.5rem;
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.auth-switch a {
+  color: var(--accent);
+  font-weight: 500;
+  margin-left: 0.3rem;
+  text-decoration: none;
+}
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+.auth-hint {
+  text-align: center;
+  margin-top: 0.8rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
