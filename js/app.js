@@ -1313,6 +1313,11 @@ async function renderLearnStudy() {
   // 标记该单词已学习
   flow.studiedWordIds[word.id] = true;
 
+  // 预加载当前单词和下一个单词的音频（减少点击发音时的延迟）
+  preloadWordAudio(word.word);
+  const nextWord = flow.currentBatch[flow.studyIndex + 1];
+  if (nextWord) preloadWordAudio(nextWord.word);
+
   speakWord(word.word);
   // 初始化动态生成的图标
   if (window.initIcons) initIcons();
@@ -1906,18 +1911,77 @@ function _hasEnglishVoice() {
 }
 
 /**
+ * 检测是否为移动设备（移动端 Web Speech API 不稳定，优先用在线音频）
+ */
+function _isMobile() {
+  return /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent) ||
+    (window.matchMedia && window.matchMedia('(max-width: 768px)').matches && 'ontouchstart' in window);
+}
+
+/**
  * 音频缓存：避免重复请求 dictionaryapi.dev
  */
 const _audioUrlCache = {};
 const _audioElementCache = {};
 
 /**
- * 通过 dictionaryapi.dev 获取真人发音并播放（降级方案）
- * 免费、无需 API key
+ * 预加载单词的在线音频（不播放，只缓存）
+ * 在单词展示时调用，用户点击时可直接播放
+ * @param {string} word - 要预加载的单词
+ */
+function preloadWordAudio(word) {
+  if (!word) return;
+  const cleanWord = word.toLowerCase().trim().split(/[\s.\/]/)[0];
+  if (!cleanWord) return;
+  if (_audioElementCache[cleanWord] || _audioUrlCache[cleanWord] === false) return;
+
+  const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanWord)}`;
+  fetch(apiUrl)
+    .then((r) => {
+      if (!r.ok) { _audioUrlCache[cleanWord] = false; return null; }
+      return r.json();
+    })
+    .then((data) => {
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        _audioUrlCache[cleanWord] = false; return;
+      }
+      const phonetics = data[0].phonetics || [];
+      const withAudio = phonetics.find((p) => p.audio && p.audio.length > 0);
+      if (!withAudio) { _audioUrlCache[cleanWord] = false; return; }
+      _audioUrlCache[cleanWord] = withAudio.audio;
+      // 预创建 Audio 对象并预加载
+      const audio = new Audio(withAudio.audio);
+      audio.preload = 'auto';
+      _audioElementCache[cleanWord] = audio;
+    })
+    .catch(() => { _audioUrlCache[cleanWord] = false; });
+}
+
+/**
+ * 通过有道词典 TTS 朗读（第二后备方案）
+ * 免费、无需 API key，用 <audio> 标签加载不受 CORS 限制
+ * @param {string} word - 要朗读的单词
+ */
+function _speakWithYoudaoTTS(word) {
+  const cleanWord = word.toLowerCase().trim().split(/[\s.\/]/)[0];
+  if (!cleanWord) return;
+
+  const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanWord)}&type=1`;
+  const audio = new Audio(url);
+  audio.play().catch((e) => {
+    console.warn('[speakWord] 有道TTS播放失败:', e);
+    // 最后降级到 Web Speech API
+    _speakWithWebSpeech(word);
+  });
+}
+
+/**
+ * 通过 dictionaryapi.dev 获取真人发音并播放
+ * 免费、无需 API key，支持 CORS
  * @param {string} word - 要朗读的单词
  */
 function _speakWithOnlineAudio(word) {
-  const cleanWord = word.toLowerCase().trim().split(/[\s.\/]/)[0]; // 短语取第一个词
+  const cleanWord = word.toLowerCase().trim().split(/[\s.\/]/)[0];
   if (!cleanWord) return;
 
   // 如果已有缓存的 Audio 对象，直接播放
@@ -1926,63 +1990,137 @@ function _speakWithOnlineAudio(word) {
     audio.currentTime = 0;
     audio.play().catch((e) => {
       console.warn('[speakWord] 在线音频播放失败:', e);
+      _speakWithYoudaoTTS(word);
     });
     return;
   }
 
-  // 先查 URL 缓存，避免重复网络请求
+  // 先查 URL 缓存
   if (_audioUrlCache[cleanWord] === false) {
-    // 之前查过，没有音频
+    // 之前查过 dictionaryapi.dev 没有音频，直接用有道 TTS
+    _speakWithYoudaoTTS(word);
     return;
   }
 
+  // 如果已有 URL 缓存但还没创建 Audio
+  if (_audioUrlCache[cleanWord] && typeof _audioUrlCache[cleanWord] === 'string') {
+    const audio = new Audio(_audioUrlCache[cleanWord]);
+    _audioElementCache[cleanWord] = audio;
+    audio.play().catch((e) => {
+      console.warn('[speakWord] 缓存URL音频播放失败:', e);
+      _speakWithYoudaoTTS(word);
+    });
+    return;
+  }
+
+  // 需要请求 dictionaryapi.dev API
   const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanWord)}`;
   fetch(apiUrl)
     .then((r) => {
-      if (!r.ok) {
-        _audioUrlCache[cleanWord] = false;
-        return null;
-      }
+      if (!r.ok) { _audioUrlCache[cleanWord] = false; return null; }
       return r.json();
     })
     .then((data) => {
       if (!data || !Array.isArray(data) || data.length === 0) {
         _audioUrlCache[cleanWord] = false;
+        _speakWithYoudaoTTS(word);
         return;
       }
       const phonetics = data[0].phonetics || [];
       const withAudio = phonetics.find((p) => p.audio && p.audio.length > 0);
       if (!withAudio) {
         _audioUrlCache[cleanWord] = false;
+        _speakWithYoudaoTTS(word);
         return;
       }
       _audioUrlCache[cleanWord] = withAudio.audio;
-
-      // 创建 Audio 对象并播放
       const audio = new Audio(withAudio.audio);
       _audioElementCache[cleanWord] = audio;
       audio.play().catch((e) => {
-        console.warn('[speakWord] 音频播放失败:', e);
+        console.warn('[speakWord] 音频播放失败，降级到有道TTS:', e);
+        _speakWithYoudaoTTS(word);
       });
     })
     .catch((e) => {
-      console.warn('[speakWord] 获取在线发音失败:', e);
+      console.warn('[speakWord] 获取在线发音失败，降级到有道TTS:', e);
       _audioUrlCache[cleanWord] = false;
+      _speakWithYoudaoTTS(word);
     });
 }
 
 /**
- * 朗读单词（兼容多浏览器，自动降级）
- * 优先使用 Web Speech API（如果有英语引擎）
- * 降级使用 dictionaryapi.dev 真人发音（免费、无需 API key）
+ * 使用 Web Speech API 朗读（作为备用方案）
+ * @param {string} word - 要朗读的单词
+ */
+function _speakWithWebSpeech(word) {
+  if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') return;
+
+  try {
+    window.speechSynthesis.cancel();
+    setTimeout(() => {
+      const settings = settingsStorage.getSettings();
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = 'en-US';
+      utterance.rate = settings.voiceRate || 0.85;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+
+      let voices = _cachedVoices;
+      if (!voices || voices.length === 0) {
+        voices = window.speechSynthesis.getVoices();
+        if (voices && voices.length > 0) _cachedVoices = voices;
+      }
+
+      if (voices && voices.length > 0) {
+        const preferred =
+          voices.find((v) => v.name && v.name.includes('Google') && v.lang === 'en-US') ||
+          voices.find((v) => v.name && v.name.includes('Microsoft') && v.lang === 'en-US') ||
+          voices.find((v) => v.name && v.name.includes('Samantha')) ||
+          voices.find((v) => v.lang === 'en-US') ||
+          voices.find((v) => v.lang && v.lang.startsWith('en'));
+        if (preferred) utterance.voice = preferred;
+      }
+
+      // 超时检测：2秒后没开始播放就放弃
+      let started = false;
+      utterance.onstart = () => { started = true; };
+      utterance.onerror = (event) => {
+        console.warn('[speakWord] Web Speech 错误:', event.error);
+      };
+      setTimeout(() => {
+        if (!started) {
+          console.warn('[speakWord] Web Speech 超时2秒未播放');
+        }
+      }, 2000);
+
+      if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+      window.speechSynthesis.speak(utterance);
+      window.speechSynthesis.resume();
+    }, 50);
+  } catch (e) {
+    console.error('[speakWord] Web Speech 异常:', e);
+  }
+}
+
+/**
+ * 朗读单词（兼容所有浏览器和移动端）
+ * 策略：
+ * - 移动端：优先用在线真人发音（Web Speech API 在移动端不稳定）
+ * - PC端：优先用 Web Speech API（如果有英语引擎），降级在线音频
+ * - 两者都失败时互相兜底
  * @param {string} word - 要朗读的单词
  */
 function speakWord(word) {
   if (!word) return;
 
-  // 检查是否有英语语音引擎
+  // 移动端：优先在线音频（更可靠，不受系统TTS引擎限制）
+  if (_isMobile()) {
+    _speakWithOnlineAudio(word);
+    return;
+  }
+
+  // PC端：优先 Web Speech API（延迟低，无网络依赖）
   if (_hasEnglishVoice()) {
-    // 使用 Web Speech API
     if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
       _speakWithOnlineAudio(word);
       return;
@@ -2011,11 +2149,10 @@ function speakWord(word) {
             voices.find((v) => v.name && v.name.includes('Samantha')) ||
             voices.find((v) => v.lang === 'en-US') ||
             voices.find((v) => v.lang && v.lang.startsWith('en'));
-          if (preferred) {
-            utterance.voice = preferred;
-          }
+          if (preferred) utterance.voice = preferred;
         }
 
+        // 如果 Web Speech 失败，降级到在线音频
         utterance.onerror = (event) => {
           console.warn('[speakWord] Web Speech 朗读失败，降级到在线音频:', event.error);
           if (event.error && event.error !== 'interrupted' && event.error !== 'canceled') {
@@ -2023,9 +2160,7 @@ function speakWord(word) {
           }
         };
 
-        if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
-        }
+        if (window.speechSynthesis.paused) window.speechSynthesis.resume();
         window.speechSynthesis.speak(utterance);
         window.speechSynthesis.resume();
       }, 50);
@@ -2034,7 +2169,7 @@ function speakWord(word) {
       _speakWithOnlineAudio(word);
     }
   } else {
-    // 没有英语语音引擎，直接用在线真人发音
+    // PC没有英语引擎，用在线音频
     _speakWithOnlineAudio(word);
   }
 }
@@ -3526,10 +3661,10 @@ const VocabTestModule = {
    * key：内部标识；name：显示名称；desc：说明；color：徽章颜色
    */
   DIFFICULTIES: [
-    { key: 'beginner', name: '小白', desc: '教材内基础词汇', color: 'var(--accent)' },
-    { key: 'normal',   name: '普通', desc: '教材内中等词汇', color: 'var(--info)' },
-    { key: 'medium',   name: '中等', desc: '教材内较难词汇', color: 'var(--warning)' },
-    { key: 'hell',     name: '地狱', desc: '教材外词汇',     color: 'var(--danger)' },
+    { key: 'beginner', name: '小白', desc: 'apple/banana 级基础词', color: 'var(--accent)' },
+    { key: 'normal',   name: '普通', desc: 'sleep/courage 级常用词', color: 'var(--info)' },
+    { key: 'medium',   name: '困难', desc: 'contribution 级长词', color: 'var(--warning)' },
+    { key: 'hell',     name: '地狱', desc: 'spy/modest 级生僻词', color: 'var(--danger)' },
   ],
 
   /** 内部状态 */
@@ -3632,55 +3767,91 @@ const VocabTestModule = {
 
   /**
    * 构建 4 个难度的词库
-   * 按教材学习顺序划分（更符合中国学生的难度感知）：
-   * - 小白(beginner)：教材必修1-2 的词汇（最先学，最简单）
-   * - 普通(normal)：教材必修3-5 的词汇（中等难度）
-   * - 中等(medium)：教材选修6-8 的词汇（较难）
-   * - 地狱(hell)：词典中不在教材内的词（教材外词汇）
+   * 综合打分算法：单词长度 + 词频(BNC/Collins) + 是否在教材内
+   * - 小白(beginner)：短词(<=6) + 高频 → apple, banana, book
+   * - 普通(normal)：中等长度(7-8) + 较常用 → sleep, courage, nervous
+   * - 困难(medium)：长词(>=9) 或 低频长词 → contribution, nationality
+   * - 地狱(hell)：短但不常见的词 → spy, modest, generous
    * @param {Array} dict - wordService._dictionary
    * @returns {Object} { beginner:[], normal:[], medium:[], hell:[] }
    */
   _buildPools(dict) {
-    // 构建教材单词到书籍编号的映射
-    const tbWordBookMap = {};
-    try {
-      if (textbookService && textbookService.isLoaded()) {
-        const all = textbookService.getAllTextbookWords();
-        for (const item of all) {
-          if (item && item.word) {
-            const w = String(item.word).toLowerCase().trim();
-            if (w) tbWordBookMap[w] = item.book; // book 编号 1-8
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('[VocabTestModule] 构建教材映射失败:', e);
-    }
-
     const pools = { beginner: [], normal: [], medium: [], hell: [] };
+
+    // BNC 排名前 50 的极高频功能词（冠词/介词/代词等），不适合做词汇检测题
+    const STOPWORDS = new Set([
+      'the','be','of','and','a','to','in','he','have','it','that','for','not','you','with',
+      'as','they','this','but','his','from','they','we','say','her','she','or','an','will',
+      'my','one','all','would','there','their','what','so','up','out','if','about','who',
+      'get','which','go','me','when','make','can','like','time','no','just','him','know',
+      'take','people','into','year','your','good','some','could','them','see','other','than',
+      'then','now','look','only','come','its','over','think','also','back','after','use',
+      'two','how','our','work','first','well','way','even','new','want','because','any',
+      'these','give','day','most','us','are','was','is','on','at','by','do','has','had','been',
+    ]);
 
     for (const w of dict) {
       if (!w || !w.word) continue;
       const word = String(w.word).trim();
       if (!word || word.includes(' ') || word.includes('-') || /\d/.test(word)) continue;
       if (!w.translation || !w.translation.trim()) continue;
+      // 跳过极高频功能词
+      if (STOPWORDS.has(word.toLowerCase())) continue;
 
-      const bookNum = tbWordBookMap[word.toLowerCase()];
+      const len = word.length;
+      const collins = w.collins || 0;
+      const bnc = w.bnc || 0;
+      const hasFreqData = collins > 0 || bnc > 0;
 
-      if (bookNum >= 1 && bookNum <= 2) {
-        // 必修1-2：最先学，最简单 → 小白难度
-        pools.beginner.push(w);
-      } else if (bookNum >= 3 && bookNum <= 5) {
-        // 必修3-5：中等难度 → 普通难度
-        pools.normal.push(w);
-      } else if (bookNum >= 6 && bookNum <= 8) {
-        // 选修6-8：较难 → 中等难度
-        pools.medium.push(w);
-      } else {
-        // 不在教材内 → 地狱难度
-        pools.hell.push(w);
+      // 综合难度打分（分数越高 = 越难）
+      let score = 0;
+
+      // 单词长度：长词更难
+      if (len <= 4) score -= 2;
+      else if (len <= 6) score -= 1;
+      else if (len <= 8) score += 0;
+      else if (len <= 10) score += 1;
+      else score += 2;
+
+      // Collins 星级：低星更难（0星=无数据，视为不常用）
+      if (collins >= 5) score -= 2;
+      else if (collins >= 4) score -= 1;
+      else if (collins >= 3) score += 0;
+      else if (collins >= 2) score += 1;
+      else score += 2;
+
+      // BNC 词频：排名越大越难
+      if (bnc > 0 && bnc <= 3000) score -= 2;
+      else if (bnc > 0 && bnc <= 5000) score -= 1;
+      else if (bnc > 0 && bnc <= 7000) score += 0;
+      else if (bnc > 0) score += 1;
+      else score += 1; // bnc=0 无数据
+
+      // 如果完全没有词频数据（collins=0 且 bnc=0），不额外惩罚
+      // 因为"无数据"不等于"不常用"，可能是复合词（如 watermelon）
+      if (!hasFreqData) {
+        score -= 1; // 只按长度判断，减轻惩罚
       }
+
+      // 特殊规则：很短但很不常见的词 → 地狱（学生可能没见过）
+      if (len <= 4 && collins <= 2 && bnc > 5000) score = 4;
+
+      // 长词（>=10）且不常用（collins<=2）→ 困难
+      if (len >= 10 && collins <= 2 && hasFreqData) score = Math.max(score, 2);
+
+      // 分档
+      if (score <= -3) pools.beginner.push(w);
+      else if (score <= 0) pools.normal.push(w);
+      else if (score <= 3) pools.medium.push(w);
+      else pools.hell.push(w);
     }
+
+    console.log('[VocabTest] 难度分布:', {
+      beginner: pools.beginner.length,
+      normal: pools.normal.length,
+      medium: pools.medium.length,
+      hell: pools.hell.length,
+    });
 
     return pools;
   },
