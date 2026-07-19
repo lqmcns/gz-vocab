@@ -406,6 +406,31 @@ class ProgressStorage {
       console.error('[ProgressStorage] 清除进度失败:', e);
     }
   }
+
+  /**
+   * 清除所有本地学习数据（学习进度 + 学习会话）
+   * 用于账号切换时清除旧账号的本地数据
+   */
+  clearAllLocalLearnData() {
+    try {
+      // 1. 清除学习进度
+      localStorage.removeItem(this.STORAGE_KEY);
+
+      // 2. 清除所有学习会话（learnflow_ 前缀的项）
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('learnflow_')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
+
+      console.log('[ProgressStorage] 已清除所有本地学习数据（进度 + 学习会话）');
+    } catch (e) {
+      console.error('[ProgressStorage] 清除本地学习数据失败:', e);
+    }
+  }
 }
 
 /* ===========================

@@ -5295,16 +5295,27 @@ async function handleAuthSubmit(event) {
   try {
     if (_authMode === 'register') {
       await AuthService.register(username, password);
+      // 新账号注册成功：清除旧账号的本地数据，新账号应该是空的
+      if (typeof progressStorage !== 'undefined' && progressStorage.clearAllLocalLearnData) {
+        progressStorage.clearAllLocalLearnData();
+      }
       showToast('注册成功，欢迎加入！', 'success');
     } else {
       await AuthService.login(username, password);
-      showToast('登录成功，正在同步数据...', 'success');
-      // 登录后从云端加载学习数据
-      if (typeof progressStorage !== 'undefined' && progressStorage.loadFromCloud) {
-        const loaded = await progressStorage.loadFromCloud();
-        if (loaded) {
-          showToast('云端数据同步完成', 'success');
+      // 切换账号：先清除旧账号的本地数据，再从云端加载新账号数据
+      if (typeof progressStorage !== 'undefined') {
+        if (progressStorage.clearAllLocalLearnData) {
+          progressStorage.clearAllLocalLearnData();
         }
+        showToast('登录成功，正在同步数据...', 'success');
+        if (progressStorage.loadFromCloud) {
+          const loaded = await progressStorage.loadFromCloud();
+          if (loaded) {
+            showToast('云端数据同步完成', 'success');
+          }
+        }
+      } else {
+        showToast('登录成功', 'success');
       }
     }
 
@@ -5332,8 +5343,12 @@ async function handleAuthSubmit(event) {
  * 退出登录
  */
 function handleLogout() {
-  if (!confirm('确定要退出登录吗？\n退出后学习进度将不再同步到云端，但本地数据不会丢失。')) {
+  if (!confirm('确定要退出登录吗？\n退出后本地学习数据将被清除，下次登录可从云端恢复。')) {
     return;
+  }
+  // 清除本地学习数据（进度已同步到云端，可安全清除）
+  if (typeof progressStorage !== 'undefined' && progressStorage.clearAllLocalLearnData) {
+    progressStorage.clearAllLocalLearnData();
   }
   AuthService.logout();
   showToast('已退出登录', 'info');
