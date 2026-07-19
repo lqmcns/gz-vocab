@@ -8,80 +8,1098 @@
           "unit": 1,
           "title": "Friendship",
           "words": [
-            "survey", "add up", "upset", "ignore", "calm", "calm...down",
-            "have got to", "concern", "be concerned about", "walk the dog",
-            "loose", "vet", "go through", "Amsterdam", "Netherlands", "Jewish",
-            "German", "Nazi", "set down", "series", "a series of", "outdoors",
-            "spellbind", "on purpose", "in order to", "dusk", "at dusk",
-            "thunder", "entire", "entirely", "power", "face to face", "curtain",
-            "dusty", "no longer", "partner", "settle", "suffer", "suffer from",
-            "loneliness", "highway", "recover", "get/be tired of", "pack",
-            "pack up", "suitcase", "overcoat", "teenager", "get along with",
-            "gossip", "fall in love", "exactly", "disagree", "grateful",
-            "dislike", "join in", "tip", "secondly", "swap", "item"
+            {
+              "code": "010101",
+              "word": "survey"
+            },
+            {
+              "code": "010102",
+              "word": "add up"
+            },
+            {
+              "code": "010103",
+              "word": "upset"
+            },
+            {
+              "code": "010104",
+              "word": "ignore"
+            },
+            {
+              "code": "010105",
+              "word": "calm"
+            },
+            {
+              "code": "010106",
+              "word": "calm...down"
+            },
+            {
+              "code": "010107",
+              "word": "have got to"
+            },
+            {
+              "code": "010108",
+              "word": "concern"
+            },
+            {
+              "code": "010109",
+              "word": "be concerned about"
+            },
+            {
+              "code": "010110",
+              "word": "walk the dog"
+            },
+            {
+              "code": "010111",
+              "word": "loose"
+            },
+            {
+              "code": "010112",
+              "word": "vet"
+            },
+            {
+              "code": "010113",
+              "word": "go through"
+            },
+            {
+              "code": "010114",
+              "word": "Amsterdam"
+            },
+            {
+              "code": "010115",
+              "word": "Netherlands"
+            },
+            {
+              "code": "010116",
+              "word": "Jewish"
+            },
+            {
+              "code": "010117",
+              "word": "German"
+            },
+            {
+              "code": "010118",
+              "word": "Nazi"
+            },
+            {
+              "code": "010119",
+              "word": "set down"
+            },
+            {
+              "code": "010120",
+              "word": "series"
+            },
+            {
+              "code": "010121",
+              "word": "a series of"
+            },
+            {
+              "code": "010122",
+              "word": "outdoors"
+            },
+            {
+              "code": "010123",
+              "word": "spellbind"
+            },
+            {
+              "code": "010124",
+              "word": "on purpose"
+            },
+            {
+              "code": "010125",
+              "word": "in order to"
+            },
+            {
+              "code": "010126",
+              "word": "dusk"
+            },
+            {
+              "code": "010127",
+              "word": "at dusk"
+            },
+            {
+              "code": "010128",
+              "word": "thunder"
+            },
+            {
+              "code": "010129",
+              "word": "entire"
+            },
+            {
+              "code": "010130",
+              "word": "entirely"
+            },
+            {
+              "code": "010131",
+              "word": "power"
+            },
+            {
+              "code": "010132",
+              "word": "face to face"
+            },
+            {
+              "code": "010133",
+              "word": "curtain"
+            },
+            {
+              "code": "010134",
+              "word": "dusty"
+            },
+            {
+              "code": "010135",
+              "word": "no longer"
+            },
+            {
+              "code": "010136",
+              "word": "partner"
+            },
+            {
+              "code": "010137",
+              "word": "settle"
+            },
+            {
+              "code": "010138",
+              "word": "suffer"
+            },
+            {
+              "code": "010139",
+              "word": "suffer from"
+            },
+            {
+              "code": "010140",
+              "word": "loneliness"
+            },
+            {
+              "code": "010141",
+              "word": "highway"
+            },
+            {
+              "code": "010142",
+              "word": "recover"
+            },
+            {
+              "code": "010143",
+              "word": "get/be tired of"
+            },
+            {
+              "code": "010144",
+              "word": "pack"
+            },
+            {
+              "code": "010145",
+              "word": "pack up"
+            },
+            {
+              "code": "010146",
+              "word": "suitcase"
+            },
+            {
+              "code": "010147",
+              "word": "overcoat"
+            },
+            {
+              "code": "010148",
+              "word": "teenager"
+            },
+            {
+              "code": "010149",
+              "word": "get along with"
+            },
+            {
+              "code": "010150",
+              "word": "gossip"
+            },
+            {
+              "code": "010151",
+              "word": "fall in love"
+            },
+            {
+              "code": "010152",
+              "word": "exactly"
+            },
+            {
+              "code": "010153",
+              "word": "disagree"
+            },
+            {
+              "code": "010154",
+              "word": "grateful"
+            },
+            {
+              "code": "010155",
+              "word": "dislike"
+            },
+            {
+              "code": "010156",
+              "word": "join in"
+            },
+            {
+              "code": "010157",
+              "word": "tip"
+            },
+            {
+              "code": "010158",
+              "word": "secondly"
+            },
+            {
+              "code": "010159",
+              "word": "swap"
+            },
+            {
+              "code": "010160",
+              "word": "item"
+            }
           ]
         },
         {
           "unit": 2,
           "title": "English around the world",
           "words": [
-            "subway", "elevator", "petrol", "gas", "official", "voyage",
-            "conquer", "because of", "native", "come up", "apartment",
-            "actually", "AD", "base", "at present", "gradual", "gradually",
-            "enrich", "vocabulary", "make use of", "spelling", "latter",
-            "identity", "fluent", "fluently", "frequent", "frequently", "usage",
-            "command", "request", "Spanish", "dialect", "expression",
-            "midwestern", "eastern", "southeastern", "northwestern", "African",
-            "play a part", "recognize", "lorry", "accent", "lightning",
-            "straight", "block", "cab"
+            {
+              "code": "010201",
+              "word": "subway"
+            },
+            {
+              "code": "010202",
+              "word": "elevator"
+            },
+            {
+              "code": "010203",
+              "word": "petrol"
+            },
+            {
+              "code": "010204",
+              "word": "gas"
+            },
+            {
+              "code": "010205",
+              "word": "official"
+            },
+            {
+              "code": "010206",
+              "word": "voyage"
+            },
+            {
+              "code": "010207",
+              "word": "conquer"
+            },
+            {
+              "code": "010208",
+              "word": "because of"
+            },
+            {
+              "code": "010209",
+              "word": "native"
+            },
+            {
+              "code": "010210",
+              "word": "come up"
+            },
+            {
+              "code": "010211",
+              "word": "apartment"
+            },
+            {
+              "code": "010212",
+              "word": "actually"
+            },
+            {
+              "code": "010213",
+              "word": "AD"
+            },
+            {
+              "code": "010214",
+              "word": "base"
+            },
+            {
+              "code": "010215",
+              "word": "at present"
+            },
+            {
+              "code": "010216",
+              "word": "gradual"
+            },
+            {
+              "code": "010217",
+              "word": "gradually"
+            },
+            {
+              "code": "010218",
+              "word": "enrich"
+            },
+            {
+              "code": "010219",
+              "word": "vocabulary"
+            },
+            {
+              "code": "010220",
+              "word": "make use of"
+            },
+            {
+              "code": "010221",
+              "word": "spelling"
+            },
+            {
+              "code": "010222",
+              "word": "latter"
+            },
+            {
+              "code": "010223",
+              "word": "identity"
+            },
+            {
+              "code": "010224",
+              "word": "fluent"
+            },
+            {
+              "code": "010225",
+              "word": "fluently"
+            },
+            {
+              "code": "010226",
+              "word": "frequent"
+            },
+            {
+              "code": "010227",
+              "word": "frequently"
+            },
+            {
+              "code": "010228",
+              "word": "usage"
+            },
+            {
+              "code": "010229",
+              "word": "command"
+            },
+            {
+              "code": "010230",
+              "word": "request"
+            },
+            {
+              "code": "010231",
+              "word": "Spanish"
+            },
+            {
+              "code": "010232",
+              "word": "dialect"
+            },
+            {
+              "code": "010233",
+              "word": "expression"
+            },
+            {
+              "code": "010234",
+              "word": "midwestern"
+            },
+            {
+              "code": "010235",
+              "word": "eastern"
+            },
+            {
+              "code": "010236",
+              "word": "southeastern"
+            },
+            {
+              "code": "010237",
+              "word": "northwestern"
+            },
+            {
+              "code": "010238",
+              "word": "African"
+            },
+            {
+              "code": "010239",
+              "word": "play a part"
+            },
+            {
+              "code": "010240",
+              "word": "recognize"
+            },
+            {
+              "code": "010241",
+              "word": "lorry"
+            },
+            {
+              "code": "010242",
+              "word": "accent"
+            },
+            {
+              "code": "010243",
+              "word": "lightning"
+            },
+            {
+              "code": "010244",
+              "word": "straight"
+            },
+            {
+              "code": "010245",
+              "word": "block"
+            },
+            {
+              "code": "010246",
+              "word": "cab"
+            }
           ]
         },
         {
           "unit": 3,
           "title": "Travel journal",
           "words": [
-            "journal", "transport", "prefer", "disadvantage", "advantage",
-            "fare", "route", "flow", "persuade", "cycle", "graduate",
-            "finally", "schedule", "fond", "be fond of", "shortcoming",
-            "stubborn", "organize", "detail", "source", "determine",
-            "determined", "change one's mind", "journey", "altitude",
-            "make up one's mind", "give in", "glacier", "Tibetan", "rapids",
-            "valley", "waterfall", "pace", "bend", "meander", "attitude",
-            "boil", "forecast", "parcel", "insurance", "wool", "as usual",
-            "reliable", "view", "pillow", "midnight", "flame", "beneath",
-            "temple", "cave"
+            {
+              "code": "010301",
+              "word": "journal"
+            },
+            {
+              "code": "010302",
+              "word": "transport"
+            },
+            {
+              "code": "010303",
+              "word": "prefer"
+            },
+            {
+              "code": "010304",
+              "word": "disadvantage"
+            },
+            {
+              "code": "010305",
+              "word": "advantage"
+            },
+            {
+              "code": "010306",
+              "word": "fare"
+            },
+            {
+              "code": "010307",
+              "word": "route"
+            },
+            {
+              "code": "010308",
+              "word": "flow"
+            },
+            {
+              "code": "010309",
+              "word": "persuade"
+            },
+            {
+              "code": "010310",
+              "word": "cycle"
+            },
+            {
+              "code": "010311",
+              "word": "graduate"
+            },
+            {
+              "code": "010312",
+              "word": "finally"
+            },
+            {
+              "code": "010313",
+              "word": "schedule"
+            },
+            {
+              "code": "010314",
+              "word": "fond"
+            },
+            {
+              "code": "010315",
+              "word": "be fond of"
+            },
+            {
+              "code": "010316",
+              "word": "shortcoming"
+            },
+            {
+              "code": "010317",
+              "word": "stubborn"
+            },
+            {
+              "code": "010318",
+              "word": "organize"
+            },
+            {
+              "code": "010319",
+              "word": "detail"
+            },
+            {
+              "code": "010320",
+              "word": "source"
+            },
+            {
+              "code": "010321",
+              "word": "determine"
+            },
+            {
+              "code": "010322",
+              "word": "determined"
+            },
+            {
+              "code": "010323",
+              "word": "change one's mind"
+            },
+            {
+              "code": "010324",
+              "word": "journey"
+            },
+            {
+              "code": "010325",
+              "word": "altitude"
+            },
+            {
+              "code": "010326",
+              "word": "make up one's mind"
+            },
+            {
+              "code": "010327",
+              "word": "give in"
+            },
+            {
+              "code": "010328",
+              "word": "glacier"
+            },
+            {
+              "code": "010329",
+              "word": "Tibetan"
+            },
+            {
+              "code": "010330",
+              "word": "rapids"
+            },
+            {
+              "code": "010331",
+              "word": "valley"
+            },
+            {
+              "code": "010332",
+              "word": "waterfall"
+            },
+            {
+              "code": "010333",
+              "word": "pace"
+            },
+            {
+              "code": "010334",
+              "word": "bend"
+            },
+            {
+              "code": "010335",
+              "word": "meander"
+            },
+            {
+              "code": "010336",
+              "word": "attitude"
+            },
+            {
+              "code": "010337",
+              "word": "boil"
+            },
+            {
+              "code": "010338",
+              "word": "forecast"
+            },
+            {
+              "code": "010339",
+              "word": "parcel"
+            },
+            {
+              "code": "010340",
+              "word": "insurance"
+            },
+            {
+              "code": "010341",
+              "word": "wool"
+            },
+            {
+              "code": "010342",
+              "word": "as usual"
+            },
+            {
+              "code": "010343",
+              "word": "reliable"
+            },
+            {
+              "code": "010344",
+              "word": "view"
+            },
+            {
+              "code": "010345",
+              "word": "pillow"
+            },
+            {
+              "code": "010346",
+              "word": "midnight"
+            },
+            {
+              "code": "010347",
+              "word": "flame"
+            },
+            {
+              "code": "010348",
+              "word": "beneath"
+            },
+            {
+              "code": "010349",
+              "word": "temple"
+            },
+            {
+              "code": "010350",
+              "word": "cave"
+            }
           ]
         },
         {
           "unit": 4,
           "title": "Earthquakes",
           "words": [
-            "earthquake", "right away", "well", "smelly", "crack", "farmyard",
-            "pipe", "burst", "million", "event", "as if", "at an end", "nation",
-            "canal", "steam", "dirt", "ruin", "in ruins", "suffering",
-            "extreme", "injure", "survivor", "destroy", "brick", "dam", "track",
-            "useless", "shock", "rescue", "trap", "electricity", "disaster",
-            "dig out", "bury", "mine", "miner", "shelter", "a number of",
-            "title", "reporter", "bar", "damage", "frighten", "frightened",
-            "frightening", "congratulation", "judge", "sincerely", "express",
-            "outline", "headline", "cyclist"
+            {
+              "code": "010401",
+              "word": "earthquake"
+            },
+            {
+              "code": "010402",
+              "word": "right away"
+            },
+            {
+              "code": "010403",
+              "word": "well"
+            },
+            {
+              "code": "010404",
+              "word": "smelly"
+            },
+            {
+              "code": "010405",
+              "word": "crack"
+            },
+            {
+              "code": "010406",
+              "word": "farmyard"
+            },
+            {
+              "code": "010407",
+              "word": "pipe"
+            },
+            {
+              "code": "010408",
+              "word": "burst"
+            },
+            {
+              "code": "010409",
+              "word": "million"
+            },
+            {
+              "code": "010410",
+              "word": "event"
+            },
+            {
+              "code": "010411",
+              "word": "as if"
+            },
+            {
+              "code": "010412",
+              "word": "at an end"
+            },
+            {
+              "code": "010413",
+              "word": "nation"
+            },
+            {
+              "code": "010414",
+              "word": "canal"
+            },
+            {
+              "code": "010415",
+              "word": "steam"
+            },
+            {
+              "code": "010416",
+              "word": "dirt"
+            },
+            {
+              "code": "010417",
+              "word": "ruin"
+            },
+            {
+              "code": "010418",
+              "word": "in ruins"
+            },
+            {
+              "code": "010419",
+              "word": "suffering"
+            },
+            {
+              "code": "010420",
+              "word": "extreme"
+            },
+            {
+              "code": "010421",
+              "word": "injure"
+            },
+            {
+              "code": "010422",
+              "word": "survivor"
+            },
+            {
+              "code": "010423",
+              "word": "destroy"
+            },
+            {
+              "code": "010424",
+              "word": "brick"
+            },
+            {
+              "code": "010425",
+              "word": "dam"
+            },
+            {
+              "code": "010426",
+              "word": "track"
+            },
+            {
+              "code": "010427",
+              "word": "useless"
+            },
+            {
+              "code": "010428",
+              "word": "shock"
+            },
+            {
+              "code": "010429",
+              "word": "rescue"
+            },
+            {
+              "code": "010430",
+              "word": "trap"
+            },
+            {
+              "code": "010431",
+              "word": "electricity"
+            },
+            {
+              "code": "010432",
+              "word": "disaster"
+            },
+            {
+              "code": "010433",
+              "word": "dig out"
+            },
+            {
+              "code": "010434",
+              "word": "bury"
+            },
+            {
+              "code": "010435",
+              "word": "mine"
+            },
+            {
+              "code": "010436",
+              "word": "miner"
+            },
+            {
+              "code": "010437",
+              "word": "shelter"
+            },
+            {
+              "code": "010438",
+              "word": "a number of"
+            },
+            {
+              "code": "010439",
+              "word": "title"
+            },
+            {
+              "code": "010440",
+              "word": "reporter"
+            },
+            {
+              "code": "010441",
+              "word": "bar"
+            },
+            {
+              "code": "010442",
+              "word": "damage"
+            },
+            {
+              "code": "010443",
+              "word": "frighten"
+            },
+            {
+              "code": "010444",
+              "word": "frightened"
+            },
+            {
+              "code": "010445",
+              "word": "frightening"
+            },
+            {
+              "code": "010446",
+              "word": "congratulation"
+            },
+            {
+              "code": "010447",
+              "word": "judge"
+            },
+            {
+              "code": "010448",
+              "word": "sincerely"
+            },
+            {
+              "code": "010449",
+              "word": "express"
+            },
+            {
+              "code": "010450",
+              "word": "outline"
+            },
+            {
+              "code": "010451",
+              "word": "headline"
+            },
+            {
+              "code": "010452",
+              "word": "cyclist"
+            }
           ]
         },
         {
           "unit": 5,
           "title": "Nelson Mandela",
           "words": [
-            "quality", "warm-hearted", "mean", "active", "generous",
-            "easy-going", "self", "selfish", "selfless", "selflessly", "devote",
-            "devoted", "invader", "found", "republic", "principle",
-            "nationalism", "livelihood", "peaceful", "giant", "mankind",
-            "lawyer", "guidance", "legal", "fee", "passbook", "out of work",
-            "helpful", "youth", "league", "Youth League", "stage", "vote",
-            "attack", "violence", "as a matter of fact", "blow up", "equal",
-            "in trouble", "willing", "unfair", "turn to", "release",
-            "lose heart", "escape", "blanket", "educate", "educated",
-            "come to power", "beg", "relative", "terror", "cruelty", "reward",
-            "set up", "sentence", "be sentenced to", "president", "opinion"
+            {
+              "code": "010501",
+              "word": "quality"
+            },
+            {
+              "code": "010502",
+              "word": "warm-hearted"
+            },
+            {
+              "code": "010503",
+              "word": "mean"
+            },
+            {
+              "code": "010504",
+              "word": "active"
+            },
+            {
+              "code": "010505",
+              "word": "generous"
+            },
+            {
+              "code": "010506",
+              "word": "easy-going"
+            },
+            {
+              "code": "010507",
+              "word": "self"
+            },
+            {
+              "code": "010508",
+              "word": "selfish"
+            },
+            {
+              "code": "010509",
+              "word": "selfless"
+            },
+            {
+              "code": "010510",
+              "word": "selflessly"
+            },
+            {
+              "code": "010511",
+              "word": "devote"
+            },
+            {
+              "code": "010512",
+              "word": "devoted"
+            },
+            {
+              "code": "010513",
+              "word": "invader"
+            },
+            {
+              "code": "010514",
+              "word": "found"
+            },
+            {
+              "code": "010515",
+              "word": "republic"
+            },
+            {
+              "code": "010516",
+              "word": "principle"
+            },
+            {
+              "code": "010517",
+              "word": "nationalism"
+            },
+            {
+              "code": "010518",
+              "word": "livelihood"
+            },
+            {
+              "code": "010519",
+              "word": "peaceful"
+            },
+            {
+              "code": "010520",
+              "word": "giant"
+            },
+            {
+              "code": "010521",
+              "word": "mankind"
+            },
+            {
+              "code": "010522",
+              "word": "lawyer"
+            },
+            {
+              "code": "010523",
+              "word": "guidance"
+            },
+            {
+              "code": "010524",
+              "word": "legal"
+            },
+            {
+              "code": "010525",
+              "word": "fee"
+            },
+            {
+              "code": "010526",
+              "word": "passbook"
+            },
+            {
+              "code": "010527",
+              "word": "out of work"
+            },
+            {
+              "code": "010528",
+              "word": "helpful"
+            },
+            {
+              "code": "010529",
+              "word": "youth"
+            },
+            {
+              "code": "010530",
+              "word": "league"
+            },
+            {
+              "code": "010531",
+              "word": "Youth League"
+            },
+            {
+              "code": "010532",
+              "word": "stage"
+            },
+            {
+              "code": "010533",
+              "word": "vote"
+            },
+            {
+              "code": "010534",
+              "word": "attack"
+            },
+            {
+              "code": "010535",
+              "word": "violence"
+            },
+            {
+              "code": "010536",
+              "word": "as a matter of fact"
+            },
+            {
+              "code": "010537",
+              "word": "blow up"
+            },
+            {
+              "code": "010538",
+              "word": "equal"
+            },
+            {
+              "code": "010539",
+              "word": "in trouble"
+            },
+            {
+              "code": "010540",
+              "word": "willing"
+            },
+            {
+              "code": "010541",
+              "word": "unfair"
+            },
+            {
+              "code": "010542",
+              "word": "turn to"
+            },
+            {
+              "code": "010543",
+              "word": "release"
+            },
+            {
+              "code": "010544",
+              "word": "lose heart"
+            },
+            {
+              "code": "010545",
+              "word": "escape"
+            },
+            {
+              "code": "010546",
+              "word": "blanket"
+            },
+            {
+              "code": "010547",
+              "word": "educate"
+            },
+            {
+              "code": "010548",
+              "word": "educated"
+            },
+            {
+              "code": "010549",
+              "word": "come to power"
+            },
+            {
+              "code": "010550",
+              "word": "beg"
+            },
+            {
+              "code": "010551",
+              "word": "relative"
+            },
+            {
+              "code": "010552",
+              "word": "terror"
+            },
+            {
+              "code": "010553",
+              "word": "cruelty"
+            },
+            {
+              "code": "010554",
+              "word": "reward"
+            },
+            {
+              "code": "010555",
+              "word": "set up"
+            },
+            {
+              "code": "010556",
+              "word": "sentence"
+            },
+            {
+              "code": "010557",
+              "word": "be sentenced to"
+            },
+            {
+              "code": "010558",
+              "word": "president"
+            },
+            {
+              "code": "010559",
+              "word": "opinion"
+            }
           ]
         }
       ]
@@ -94,37 +1112,450 @@
           "unit": 1,
           "title": "Cultural relics",
           "words": [
-            "cultural", "relic", "rare", "valuable", "survive", "vase",
-            "dynasty", "amber", "in search of", "amaze", "amazing", "select",
-            "honey", "design", "fancy", "style", "decorate", "jewel", "artist",
-            "belong", "belong to", "in return", "troop", "reception", "at war",
-            "remove", "less than", "wooden", "doubt", "mystery", "former",
-            "worth", "rebuild", "local", "apart", "take apart", "painting",
-            "castle", "trial", "eyewitness", "evidence", "explode", "entrance",
-            "sailor", "sink", "maid", "think highly of", "informal", "debate"
+            {
+              "code": "020101",
+              "word": "cultural"
+            },
+            {
+              "code": "020102",
+              "word": "relic"
+            },
+            {
+              "code": "020103",
+              "word": "rare"
+            },
+            {
+              "code": "020104",
+              "word": "valuable"
+            },
+            {
+              "code": "020105",
+              "word": "survive"
+            },
+            {
+              "code": "020106",
+              "word": "vase"
+            },
+            {
+              "code": "020107",
+              "word": "dynasty"
+            },
+            {
+              "code": "020108",
+              "word": "amber"
+            },
+            {
+              "code": "020109",
+              "word": "in search of"
+            },
+            {
+              "code": "020110",
+              "word": "amaze"
+            },
+            {
+              "code": "020111",
+              "word": "amazing"
+            },
+            {
+              "code": "020112",
+              "word": "select"
+            },
+            {
+              "code": "020113",
+              "word": "honey"
+            },
+            {
+              "code": "020114",
+              "word": "design"
+            },
+            {
+              "code": "020115",
+              "word": "fancy"
+            },
+            {
+              "code": "020116",
+              "word": "style"
+            },
+            {
+              "code": "020117",
+              "word": "decorate"
+            },
+            {
+              "code": "020118",
+              "word": "jewel"
+            },
+            {
+              "code": "020119",
+              "word": "artist"
+            },
+            {
+              "code": "020120",
+              "word": "belong"
+            },
+            {
+              "code": "020121",
+              "word": "belong to"
+            },
+            {
+              "code": "020122",
+              "word": "in return"
+            },
+            {
+              "code": "020123",
+              "word": "troop"
+            },
+            {
+              "code": "020124",
+              "word": "reception"
+            },
+            {
+              "code": "020125",
+              "word": "at war"
+            },
+            {
+              "code": "020126",
+              "word": "remove"
+            },
+            {
+              "code": "020127",
+              "word": "less than"
+            },
+            {
+              "code": "020128",
+              "word": "wooden"
+            },
+            {
+              "code": "020129",
+              "word": "doubt"
+            },
+            {
+              "code": "020130",
+              "word": "mystery"
+            },
+            {
+              "code": "020131",
+              "word": "former"
+            },
+            {
+              "code": "020132",
+              "word": "worth"
+            },
+            {
+              "code": "020133",
+              "word": "rebuild"
+            },
+            {
+              "code": "020134",
+              "word": "local"
+            },
+            {
+              "code": "020135",
+              "word": "apart"
+            },
+            {
+              "code": "020136",
+              "word": "take apart"
+            },
+            {
+              "code": "020137",
+              "word": "painting"
+            },
+            {
+              "code": "020138",
+              "word": "castle"
+            },
+            {
+              "code": "020139",
+              "word": "trial"
+            },
+            {
+              "code": "020140",
+              "word": "eyewitness"
+            },
+            {
+              "code": "020141",
+              "word": "evidence"
+            },
+            {
+              "code": "020142",
+              "word": "explode"
+            },
+            {
+              "code": "020143",
+              "word": "entrance"
+            },
+            {
+              "code": "020144",
+              "word": "sailor"
+            },
+            {
+              "code": "020145",
+              "word": "sink"
+            },
+            {
+              "code": "020146",
+              "word": "maid"
+            },
+            {
+              "code": "020147",
+              "word": "think highly of"
+            },
+            {
+              "code": "020148",
+              "word": "informal"
+            },
+            {
+              "code": "020149",
+              "word": "debate"
+            }
           ]
         },
         {
           "unit": 2,
           "title": "The Olympic Games",
           "words": [
-            "ancient", "compete", "competitor", "take part in", "medal",
-            "stand for", "mascot", "magical", "volunteer", "homeland",
-            "regular", "basis", "athlete", "admit", "slave", "nowadays",
-            "gymnastics", "athletics", "stadium", "gymnasium", "as well",
-            "host", "responsibility", "olive", "wreath", "replace", "motto",
-            "swift", "similarity", "charge", "in charge", "physical", "fine",
-            "poster", "advertise", "glory", "bargain", "hopeless", "foolish",
-            "goddess", "pain", "one after another", "deserve", "striker"
+            {
+              "code": "020201",
+              "word": "ancient"
+            },
+            {
+              "code": "020202",
+              "word": "compete"
+            },
+            {
+              "code": "020203",
+              "word": "competitor"
+            },
+            {
+              "code": "020204",
+              "word": "take part in"
+            },
+            {
+              "code": "020205",
+              "word": "medal"
+            },
+            {
+              "code": "020206",
+              "word": "stand for"
+            },
+            {
+              "code": "020207",
+              "word": "mascot"
+            },
+            {
+              "code": "020208",
+              "word": "magical"
+            },
+            {
+              "code": "020209",
+              "word": "volunteer"
+            },
+            {
+              "code": "020210",
+              "word": "homeland"
+            },
+            {
+              "code": "020211",
+              "word": "regular"
+            },
+            {
+              "code": "020212",
+              "word": "basis"
+            },
+            {
+              "code": "020213",
+              "word": "athlete"
+            },
+            {
+              "code": "020214",
+              "word": "admit"
+            },
+            {
+              "code": "020215",
+              "word": "slave"
+            },
+            {
+              "code": "020216",
+              "word": "nowadays"
+            },
+            {
+              "code": "020217",
+              "word": "gymnastics"
+            },
+            {
+              "code": "020218",
+              "word": "athletics"
+            },
+            {
+              "code": "020219",
+              "word": "stadium"
+            },
+            {
+              "code": "020220",
+              "word": "gymnasium"
+            },
+            {
+              "code": "020221",
+              "word": "as well"
+            },
+            {
+              "code": "020222",
+              "word": "host"
+            },
+            {
+              "code": "020223",
+              "word": "responsibility"
+            },
+            {
+              "code": "020224",
+              "word": "olive"
+            },
+            {
+              "code": "020225",
+              "word": "wreath"
+            },
+            {
+              "code": "020226",
+              "word": "replace"
+            },
+            {
+              "code": "020227",
+              "word": "motto"
+            },
+            {
+              "code": "020228",
+              "word": "swift"
+            },
+            {
+              "code": "020229",
+              "word": "similarity"
+            },
+            {
+              "code": "020230",
+              "word": "charge"
+            },
+            {
+              "code": "020231",
+              "word": "in charge"
+            },
+            {
+              "code": "020232",
+              "word": "physical"
+            },
+            {
+              "code": "020233",
+              "word": "fine"
+            },
+            {
+              "code": "020234",
+              "word": "poster"
+            },
+            {
+              "code": "020235",
+              "word": "advertise"
+            },
+            {
+              "code": "020236",
+              "word": "glory"
+            },
+            {
+              "code": "020237",
+              "word": "bargain"
+            },
+            {
+              "code": "020238",
+              "word": "hopeless"
+            },
+            {
+              "code": "020239",
+              "word": "foolish"
+            },
+            {
+              "code": "020240",
+              "word": "goddess"
+            },
+            {
+              "code": "020241",
+              "word": "pain"
+            },
+            {
+              "code": "020242",
+              "word": "one after another"
+            },
+            {
+              "code": "020243",
+              "word": "deserve"
+            },
+            {
+              "code": "020244",
+              "word": "striker"
+            }
           ]
         },
         {
           "unit": 3,
           "title": "Computers",
           "words": [
-            "abacus", "calculator", "PC", "laptop", "PDA", "analytical",
-            "calculate", "universal", "simplify", "sum", "operator", "logical",
-            "logically", "technology", "technological"
+            {
+              "code": "020301",
+              "word": "abacus"
+            },
+            {
+              "code": "020302",
+              "word": "calculator"
+            },
+            {
+              "code": "020303",
+              "word": "PC"
+            },
+            {
+              "code": "020304",
+              "word": "laptop"
+            },
+            {
+              "code": "020305",
+              "word": "PDA"
+            },
+            {
+              "code": "020306",
+              "word": "analytical"
+            },
+            {
+              "code": "020307",
+              "word": "calculate"
+            },
+            {
+              "code": "020308",
+              "word": "universal"
+            },
+            {
+              "code": "020309",
+              "word": "simplify"
+            },
+            {
+              "code": "020310",
+              "word": "sum"
+            },
+            {
+              "code": "020311",
+              "word": "operator"
+            },
+            {
+              "code": "020312",
+              "word": "logical"
+            },
+            {
+              "code": "020313",
+              "word": "logically"
+            },
+            {
+              "code": "020314",
+              "word": "technology"
+            },
+            {
+              "code": "020315",
+              "word": "technological"
+            }
           ]
         }
       ]
@@ -137,46 +1568,610 @@
           "unit": 1,
           "title": "Festivals around the world",
           "words": [
-            "take place", "beauty", "harvest", "celebration", "hunter",
-            "starve", "origin", "religious", "seasonal", "ancestor", "grave",
-            "incense", "in memory of", "feast", "skull", "bone", "Halloween",
-            "belief", "dress up", "trick", "play a trick on", "poet", "arrival",
-            "gain", "independence", "independent", "gather", "agriculture",
-            "agricultural", "award", "produce", "rooster", "admire",
-            "energetic", "look forward to", "carnival", "lunar", "Easter",
-            "parade", "day and night", "clothing", "Christian", "Jesus",
-            "cherry", "blossom", "as though", "have fun with", "custom",
-            "worldwide", "fool", "necessity", "permission", "prediction",
-            "fashion", "Valentine's Day", "turn up", "keep one's word",
-            "hold one's breath", "apologize", "drown", "sadness", "obvious",
-            "wipe", "weave", "herd", "magpie", "weep", "announcer", "set off",
-            "remind", "remind of", "forgive"
+            {
+              "code": "030101",
+              "word": "take place"
+            },
+            {
+              "code": "030102",
+              "word": "beauty"
+            },
+            {
+              "code": "030103",
+              "word": "harvest"
+            },
+            {
+              "code": "030104",
+              "word": "celebration"
+            },
+            {
+              "code": "030105",
+              "word": "hunter"
+            },
+            {
+              "code": "030106",
+              "word": "starve"
+            },
+            {
+              "code": "030107",
+              "word": "origin"
+            },
+            {
+              "code": "030108",
+              "word": "religious"
+            },
+            {
+              "code": "030109",
+              "word": "seasonal"
+            },
+            {
+              "code": "030110",
+              "word": "ancestor"
+            },
+            {
+              "code": "030111",
+              "word": "grave"
+            },
+            {
+              "code": "030112",
+              "word": "incense"
+            },
+            {
+              "code": "030113",
+              "word": "in memory of"
+            },
+            {
+              "code": "030114",
+              "word": "feast"
+            },
+            {
+              "code": "030115",
+              "word": "skull"
+            },
+            {
+              "code": "030116",
+              "word": "bone"
+            },
+            {
+              "code": "030117",
+              "word": "Halloween"
+            },
+            {
+              "code": "030118",
+              "word": "belief"
+            },
+            {
+              "code": "030119",
+              "word": "dress up"
+            },
+            {
+              "code": "030120",
+              "word": "trick"
+            },
+            {
+              "code": "030121",
+              "word": "play a trick on"
+            },
+            {
+              "code": "030122",
+              "word": "poet"
+            },
+            {
+              "code": "030123",
+              "word": "arrival"
+            },
+            {
+              "code": "030124",
+              "word": "gain"
+            },
+            {
+              "code": "030125",
+              "word": "independence"
+            },
+            {
+              "code": "030126",
+              "word": "independent"
+            },
+            {
+              "code": "030127",
+              "word": "gather"
+            },
+            {
+              "code": "030128",
+              "word": "agriculture"
+            },
+            {
+              "code": "030129",
+              "word": "agricultural"
+            },
+            {
+              "code": "030130",
+              "word": "award"
+            },
+            {
+              "code": "030131",
+              "word": "produce"
+            },
+            {
+              "code": "030132",
+              "word": "rooster"
+            },
+            {
+              "code": "030133",
+              "word": "admire"
+            },
+            {
+              "code": "030134",
+              "word": "energetic"
+            },
+            {
+              "code": "030135",
+              "word": "look forward to"
+            },
+            {
+              "code": "030136",
+              "word": "carnival"
+            },
+            {
+              "code": "030137",
+              "word": "lunar"
+            },
+            {
+              "code": "030138",
+              "word": "Easter"
+            },
+            {
+              "code": "030139",
+              "word": "parade"
+            },
+            {
+              "code": "030140",
+              "word": "day and night"
+            },
+            {
+              "code": "030141",
+              "word": "clothing"
+            },
+            {
+              "code": "030142",
+              "word": "Christian"
+            },
+            {
+              "code": "030143",
+              "word": "Jesus"
+            },
+            {
+              "code": "030144",
+              "word": "cherry"
+            },
+            {
+              "code": "030145",
+              "word": "blossom"
+            },
+            {
+              "code": "030146",
+              "word": "as though"
+            },
+            {
+              "code": "030147",
+              "word": "have fun with"
+            },
+            {
+              "code": "030148",
+              "word": "custom"
+            },
+            {
+              "code": "030149",
+              "word": "worldwide"
+            },
+            {
+              "code": "030150",
+              "word": "fool"
+            },
+            {
+              "code": "030151",
+              "word": "necessity"
+            },
+            {
+              "code": "030152",
+              "word": "permission"
+            },
+            {
+              "code": "030153",
+              "word": "prediction"
+            },
+            {
+              "code": "030154",
+              "word": "fashion"
+            },
+            {
+              "code": "030155",
+              "word": "Valentine's Day"
+            },
+            {
+              "code": "030156",
+              "word": "turn up"
+            },
+            {
+              "code": "030157",
+              "word": "keep one's word"
+            },
+            {
+              "code": "030158",
+              "word": "hold one's breath"
+            },
+            {
+              "code": "030159",
+              "word": "apologize"
+            },
+            {
+              "code": "030160",
+              "word": "drown"
+            },
+            {
+              "code": "030161",
+              "word": "sadness"
+            },
+            {
+              "code": "030162",
+              "word": "obvious"
+            },
+            {
+              "code": "030163",
+              "word": "wipe"
+            },
+            {
+              "code": "030164",
+              "word": "weave"
+            },
+            {
+              "code": "030165",
+              "word": "herd"
+            },
+            {
+              "code": "030166",
+              "word": "magpie"
+            },
+            {
+              "code": "030167",
+              "word": "weep"
+            },
+            {
+              "code": "030168",
+              "word": "announcer"
+            },
+            {
+              "code": "030169",
+              "word": "set off"
+            },
+            {
+              "code": "030170",
+              "word": "remind"
+            },
+            {
+              "code": "030171",
+              "word": "remind of"
+            },
+            {
+              "code": "030172",
+              "word": "forgive"
+            }
           ]
         },
         {
           "unit": 2,
           "title": "Healthy eating",
           "words": [
-            "diet", "spaghetti", "nut", "muscle", "protective", "bean", "pea",
-            "cucumber", "eggplant", "pepper", "mushroom", "peach", "lemon",
-            "balance", "balanced diet", "barbecue", "mutton", "kebab", "roast",
-            "stir", "fry", "stir-fry", "ought", "ought to", "bacon", "cola",
-            "sugary", "sign", "lose weight", "slim", "curiosity", "hostess",
-            "raw", "vinegar", "get away with", "lie", "tell a lie", "customer",
-            "discount", "win back", "weakness", "strength", "consult", "fibre",
-            "digest", "poisonous", "carrot", "vitamin", "protein",
-            "earn one's living", "debt", "in debt", "glare", "spy", "spy on",
-            "limit", "limited", "benefit", "breast", "garlic", "sigh",
-            "combine", "cut down", "before long", "put on weight",
-            "cooperation", "ingredient", "flavour"
+            {
+              "code": "030201",
+              "word": "diet"
+            },
+            {
+              "code": "030202",
+              "word": "spaghetti"
+            },
+            {
+              "code": "030203",
+              "word": "nut"
+            },
+            {
+              "code": "030204",
+              "word": "muscle"
+            },
+            {
+              "code": "030205",
+              "word": "protective"
+            },
+            {
+              "code": "030206",
+              "word": "bean"
+            },
+            {
+              "code": "030207",
+              "word": "pea"
+            },
+            {
+              "code": "030208",
+              "word": "cucumber"
+            },
+            {
+              "code": "030209",
+              "word": "eggplant"
+            },
+            {
+              "code": "030210",
+              "word": "pepper"
+            },
+            {
+              "code": "030211",
+              "word": "mushroom"
+            },
+            {
+              "code": "030212",
+              "word": "peach"
+            },
+            {
+              "code": "030213",
+              "word": "lemon"
+            },
+            {
+              "code": "030214",
+              "word": "balance"
+            },
+            {
+              "code": "030215",
+              "word": "balanced diet"
+            },
+            {
+              "code": "030216",
+              "word": "barbecue"
+            },
+            {
+              "code": "030217",
+              "word": "mutton"
+            },
+            {
+              "code": "030218",
+              "word": "kebab"
+            },
+            {
+              "code": "030219",
+              "word": "roast"
+            },
+            {
+              "code": "030220",
+              "word": "stir"
+            },
+            {
+              "code": "030221",
+              "word": "fry"
+            },
+            {
+              "code": "030222",
+              "word": "stir-fry"
+            },
+            {
+              "code": "030223",
+              "word": "ought"
+            },
+            {
+              "code": "030224",
+              "word": "ought to"
+            },
+            {
+              "code": "030225",
+              "word": "bacon"
+            },
+            {
+              "code": "030226",
+              "word": "cola"
+            },
+            {
+              "code": "030227",
+              "word": "sugary"
+            },
+            {
+              "code": "030228",
+              "word": "sign"
+            },
+            {
+              "code": "030229",
+              "word": "lose weight"
+            },
+            {
+              "code": "030230",
+              "word": "slim"
+            },
+            {
+              "code": "030231",
+              "word": "curiosity"
+            },
+            {
+              "code": "030232",
+              "word": "hostess"
+            },
+            {
+              "code": "030233",
+              "word": "raw"
+            },
+            {
+              "code": "030234",
+              "word": "vinegar"
+            },
+            {
+              "code": "030235",
+              "word": "get away with"
+            },
+            {
+              "code": "030236",
+              "word": "lie"
+            },
+            {
+              "code": "030237",
+              "word": "tell a lie"
+            },
+            {
+              "code": "030238",
+              "word": "customer"
+            },
+            {
+              "code": "030239",
+              "word": "discount"
+            },
+            {
+              "code": "030240",
+              "word": "win back"
+            },
+            {
+              "code": "030241",
+              "word": "weakness"
+            },
+            {
+              "code": "030242",
+              "word": "strength"
+            },
+            {
+              "code": "030243",
+              "word": "consult"
+            },
+            {
+              "code": "030244",
+              "word": "fibre"
+            },
+            {
+              "code": "030245",
+              "word": "digest"
+            },
+            {
+              "code": "030246",
+              "word": "poisonous"
+            },
+            {
+              "code": "030247",
+              "word": "carrot"
+            },
+            {
+              "code": "030248",
+              "word": "vitamin"
+            },
+            {
+              "code": "030249",
+              "word": "protein"
+            },
+            {
+              "code": "030250",
+              "word": "earn one's living"
+            },
+            {
+              "code": "030251",
+              "word": "debt"
+            },
+            {
+              "code": "030252",
+              "word": "in debt"
+            },
+            {
+              "code": "030253",
+              "word": "glare"
+            },
+            {
+              "code": "030254",
+              "word": "spy"
+            },
+            {
+              "code": "030255",
+              "word": "spy on"
+            },
+            {
+              "code": "030256",
+              "word": "limit"
+            },
+            {
+              "code": "030257",
+              "word": "limited"
+            },
+            {
+              "code": "030258",
+              "word": "benefit"
+            },
+            {
+              "code": "030259",
+              "word": "breast"
+            },
+            {
+              "code": "030260",
+              "word": "garlic"
+            },
+            {
+              "code": "030261",
+              "word": "sigh"
+            },
+            {
+              "code": "030262",
+              "word": "combine"
+            },
+            {
+              "code": "030263",
+              "word": "cut down"
+            },
+            {
+              "code": "030264",
+              "word": "before long"
+            },
+            {
+              "code": "030265",
+              "word": "put on weight"
+            },
+            {
+              "code": "030266",
+              "word": "cooperation"
+            },
+            {
+              "code": "030267",
+              "word": "ingredient"
+            },
+            {
+              "code": "030268",
+              "word": "flavour"
+            }
           ]
         },
         {
           "unit": 3,
           "title": "The Million Pound Bank Note",
           "words": [
-            "Mark Twain", "birthplace", "Florida", "bring up", "novel",
-            "boyhood", "adventure", "Tom Sawyer"
+            {
+              "code": "030301",
+              "word": "Mark Twain"
+            },
+            {
+              "code": "030302",
+              "word": "birthplace"
+            },
+            {
+              "code": "030303",
+              "word": "Florida"
+            },
+            {
+              "code": "030304",
+              "word": "bring up"
+            },
+            {
+              "code": "030305",
+              "word": "novel"
+            },
+            {
+              "code": "030306",
+              "word": "boyhood"
+            },
+            {
+              "code": "030307",
+              "word": "adventure"
+            },
+            {
+              "code": "030308",
+              "word": "Tom Sawyer"
+            }
           ]
         }
       ]
@@ -189,44 +2184,530 @@
           "unit": 1,
           "title": "Women of achievement",
           "words": [
-            "achievement", "welfare", "project", "institute", "specialist",
-            "specialize", "campaign", "landmine", "organization", "behave",
-            "behavior", "shade", "move off", "worthwhile", "nest", "bond",
-            "observe", "observation", "childhood", "outspoken", "respect",
-            "argue", "argument", "entertainment", "crowd", "crowd in",
-            "inspire", "inspiration", "support", "look down upon", "refer",
-            "refer to", "audience", "by chance", "come across", "career",
-            "rate", "sickness", "intend", "emergency", "generation",
-            "determination", "kindness", "considerate", "consideration",
-            "deliver", "carry on", "modest"
+            {
+              "code": "040101",
+              "word": "achievement"
+            },
+            {
+              "code": "040102",
+              "word": "welfare"
+            },
+            {
+              "code": "040103",
+              "word": "project"
+            },
+            {
+              "code": "040104",
+              "word": "institute"
+            },
+            {
+              "code": "040105",
+              "word": "specialist"
+            },
+            {
+              "code": "040106",
+              "word": "specialize"
+            },
+            {
+              "code": "040107",
+              "word": "campaign"
+            },
+            {
+              "code": "040108",
+              "word": "landmine"
+            },
+            {
+              "code": "040109",
+              "word": "organization"
+            },
+            {
+              "code": "040110",
+              "word": "behave"
+            },
+            {
+              "code": "040111",
+              "word": "behavior"
+            },
+            {
+              "code": "040112",
+              "word": "shade"
+            },
+            {
+              "code": "040113",
+              "word": "move off"
+            },
+            {
+              "code": "040114",
+              "word": "worthwhile"
+            },
+            {
+              "code": "040115",
+              "word": "nest"
+            },
+            {
+              "code": "040116",
+              "word": "bond"
+            },
+            {
+              "code": "040117",
+              "word": "observe"
+            },
+            {
+              "code": "040118",
+              "word": "observation"
+            },
+            {
+              "code": "040119",
+              "word": "childhood"
+            },
+            {
+              "code": "040120",
+              "word": "outspoken"
+            },
+            {
+              "code": "040121",
+              "word": "respect"
+            },
+            {
+              "code": "040122",
+              "word": "argue"
+            },
+            {
+              "code": "040123",
+              "word": "argument"
+            },
+            {
+              "code": "040124",
+              "word": "entertainment"
+            },
+            {
+              "code": "040125",
+              "word": "crowd"
+            },
+            {
+              "code": "040126",
+              "word": "crowd in"
+            },
+            {
+              "code": "040127",
+              "word": "inspire"
+            },
+            {
+              "code": "040128",
+              "word": "inspiration"
+            },
+            {
+              "code": "040129",
+              "word": "support"
+            },
+            {
+              "code": "040130",
+              "word": "look down upon"
+            },
+            {
+              "code": "040131",
+              "word": "refer"
+            },
+            {
+              "code": "040132",
+              "word": "refer to"
+            },
+            {
+              "code": "040133",
+              "word": "audience"
+            },
+            {
+              "code": "040134",
+              "word": "by chance"
+            },
+            {
+              "code": "040135",
+              "word": "come across"
+            },
+            {
+              "code": "040136",
+              "word": "career"
+            },
+            {
+              "code": "040137",
+              "word": "rate"
+            },
+            {
+              "code": "040138",
+              "word": "sickness"
+            },
+            {
+              "code": "040139",
+              "word": "intend"
+            },
+            {
+              "code": "040140",
+              "word": "emergency"
+            },
+            {
+              "code": "040141",
+              "word": "generation"
+            },
+            {
+              "code": "040142",
+              "word": "determination"
+            },
+            {
+              "code": "040143",
+              "word": "kindness"
+            },
+            {
+              "code": "040144",
+              "word": "considerate"
+            },
+            {
+              "code": "040145",
+              "word": "consideration"
+            },
+            {
+              "code": "040146",
+              "word": "deliver"
+            },
+            {
+              "code": "040147",
+              "word": "carry on"
+            },
+            {
+              "code": "040148",
+              "word": "modest"
+            }
           ]
         },
         {
           "unit": 2,
           "title": "Working the land",
           "words": [
-            "statistic", "sunburnt", "struggle", "decade", "super", "hybrid",
-            "output", "strain", "crop", "hunger", "disturbing", "expand",
-            "circulate", "thanks to", "battle", "rid", "rid of",
-            "be satisfied with", "freedom", "would rather", "therefore",
-            "equip", "sorghum", "grain", "peanut", "export", "nationality",
-            "occupation", "personality", "confuse", "regret", "chemical",
-            "organic", "fertile", "fertilizer", "production", "bacteria",
-            "pest", "build up", "lead to", "nutrition", "mineral", "discovery",
-            "focus", "focus on", "soil", "reduce", "keep free from", "soybean",
-            "root", "skim", "underline", "summary", "comment", "producer",
-            "industrial"
+            {
+              "code": "040201",
+              "word": "statistic"
+            },
+            {
+              "code": "040202",
+              "word": "sunburnt"
+            },
+            {
+              "code": "040203",
+              "word": "struggle"
+            },
+            {
+              "code": "040204",
+              "word": "decade"
+            },
+            {
+              "code": "040205",
+              "word": "super"
+            },
+            {
+              "code": "040206",
+              "word": "hybrid"
+            },
+            {
+              "code": "040207",
+              "word": "output"
+            },
+            {
+              "code": "040208",
+              "word": "strain"
+            },
+            {
+              "code": "040209",
+              "word": "crop"
+            },
+            {
+              "code": "040210",
+              "word": "hunger"
+            },
+            {
+              "code": "040211",
+              "word": "disturbing"
+            },
+            {
+              "code": "040212",
+              "word": "expand"
+            },
+            {
+              "code": "040213",
+              "word": "circulate"
+            },
+            {
+              "code": "040214",
+              "word": "thanks to"
+            },
+            {
+              "code": "040215",
+              "word": "battle"
+            },
+            {
+              "code": "040216",
+              "word": "rid"
+            },
+            {
+              "code": "040217",
+              "word": "rid of"
+            },
+            {
+              "code": "040218",
+              "word": "be satisfied with"
+            },
+            {
+              "code": "040219",
+              "word": "freedom"
+            },
+            {
+              "code": "040220",
+              "word": "would rather"
+            },
+            {
+              "code": "040221",
+              "word": "therefore"
+            },
+            {
+              "code": "040222",
+              "word": "equip"
+            },
+            {
+              "code": "040223",
+              "word": "sorghum"
+            },
+            {
+              "code": "040224",
+              "word": "grain"
+            },
+            {
+              "code": "040225",
+              "word": "peanut"
+            },
+            {
+              "code": "040226",
+              "word": "export"
+            },
+            {
+              "code": "040227",
+              "word": "nationality"
+            },
+            {
+              "code": "040228",
+              "word": "occupation"
+            },
+            {
+              "code": "040229",
+              "word": "personality"
+            },
+            {
+              "code": "040230",
+              "word": "confuse"
+            },
+            {
+              "code": "040231",
+              "word": "regret"
+            },
+            {
+              "code": "040232",
+              "word": "chemical"
+            },
+            {
+              "code": "040233",
+              "word": "organic"
+            },
+            {
+              "code": "040234",
+              "word": "fertile"
+            },
+            {
+              "code": "040235",
+              "word": "fertilizer"
+            },
+            {
+              "code": "040236",
+              "word": "production"
+            },
+            {
+              "code": "040237",
+              "word": "bacteria"
+            },
+            {
+              "code": "040238",
+              "word": "pest"
+            },
+            {
+              "code": "040239",
+              "word": "build up"
+            },
+            {
+              "code": "040240",
+              "word": "lead to"
+            },
+            {
+              "code": "040241",
+              "word": "nutrition"
+            },
+            {
+              "code": "040242",
+              "word": "mineral"
+            },
+            {
+              "code": "040243",
+              "word": "discovery"
+            },
+            {
+              "code": "040244",
+              "word": "focus"
+            },
+            {
+              "code": "040245",
+              "word": "focus on"
+            },
+            {
+              "code": "040246",
+              "word": "soil"
+            },
+            {
+              "code": "040247",
+              "word": "reduce"
+            },
+            {
+              "code": "040248",
+              "word": "keep free from"
+            },
+            {
+              "code": "040249",
+              "word": "soybean"
+            },
+            {
+              "code": "040250",
+              "word": "root"
+            },
+            {
+              "code": "040251",
+              "word": "skim"
+            },
+            {
+              "code": "040252",
+              "word": "underline"
+            },
+            {
+              "code": "040253",
+              "word": "summary"
+            },
+            {
+              "code": "040254",
+              "word": "comment"
+            },
+            {
+              "code": "040255",
+              "word": "producer"
+            },
+            {
+              "code": "040256",
+              "word": "industrial"
+            }
           ]
         },
         {
           "unit": 3,
           "title": "A taste of English humour",
           "words": [
-            "humour", "punchline", "verbal", "nonverbal", "mime", "comedy",
-            "up to now", "brighten", "depressed", "content", "feel content with",
-            "performer", "astonish", "astonishing", "fortunate",
-            "unfortunately", "badly off", "teens", "ordinary", "bored",
-            "subtle", "entertain", "entertaining", "charming"
+            {
+              "code": "040301",
+              "word": "humour"
+            },
+            {
+              "code": "040302",
+              "word": "punchline"
+            },
+            {
+              "code": "040303",
+              "word": "verbal"
+            },
+            {
+              "code": "040304",
+              "word": "nonverbal"
+            },
+            {
+              "code": "040305",
+              "word": "mime"
+            },
+            {
+              "code": "040306",
+              "word": "comedy"
+            },
+            {
+              "code": "040307",
+              "word": "up to now"
+            },
+            {
+              "code": "040308",
+              "word": "brighten"
+            },
+            {
+              "code": "040309",
+              "word": "depressed"
+            },
+            {
+              "code": "040310",
+              "word": "content"
+            },
+            {
+              "code": "040311",
+              "word": "feel content with"
+            },
+            {
+              "code": "040312",
+              "word": "performer"
+            },
+            {
+              "code": "040313",
+              "word": "astonish"
+            },
+            {
+              "code": "040314",
+              "word": "astonishing"
+            },
+            {
+              "code": "040315",
+              "word": "fortunate"
+            },
+            {
+              "code": "040316",
+              "word": "unfortunately"
+            },
+            {
+              "code": "040317",
+              "word": "badly off"
+            },
+            {
+              "code": "040318",
+              "word": "teens"
+            },
+            {
+              "code": "040319",
+              "word": "ordinary"
+            },
+            {
+              "code": "040320",
+              "word": "bored"
+            },
+            {
+              "code": "040321",
+              "word": "subtle"
+            },
+            {
+              "code": "040322",
+              "word": "entertain"
+            },
+            {
+              "code": "040323",
+              "word": "entertaining"
+            },
+            {
+              "code": "040324",
+              "word": "charming"
+            }
           ]
         }
       ]
@@ -239,48 +2720,630 @@
           "unit": 1,
           "title": "Great scientists",
           "words": [
-            "characteristic", "radium", "painter", "put forward", "scientific",
-            "conclude", "conclusion", "draw a conclusion", "analyse", "infect",
-            "infectious", "cholera", "defeat", "expert", "attend", "physician",
-            "expose", "expose to", "deadly", "cure", "outbreak", "challenge",
-            "victim", "absorb", "suspect", "enquiry", "neighborhood", "severe",
-            "clue", "pump", "foresee", "investigate", "investigation", "blame",
-            "pollute", "handle", "germ", "link", "link to", "announce",
-            "certainty", "instruct", "responsible", "construct", "construction",
-            "contribute", "apart from", "firework", "chart", "creative",
-            "co-operative", "positive", "be strict with", "revolutionary",
-            "movement", "make sense", "backward", "loop", "privately", "spin",
-            "brightness", "enthusiastic", "cautious", "reject", "universe"
+            {
+              "code": "050101",
+              "word": "characteristic"
+            },
+            {
+              "code": "050102",
+              "word": "radium"
+            },
+            {
+              "code": "050103",
+              "word": "painter"
+            },
+            {
+              "code": "050104",
+              "word": "put forward"
+            },
+            {
+              "code": "050105",
+              "word": "scientific"
+            },
+            {
+              "code": "050106",
+              "word": "conclude"
+            },
+            {
+              "code": "050107",
+              "word": "conclusion"
+            },
+            {
+              "code": "050108",
+              "word": "draw a conclusion"
+            },
+            {
+              "code": "050109",
+              "word": "analyse"
+            },
+            {
+              "code": "050110",
+              "word": "infect"
+            },
+            {
+              "code": "050111",
+              "word": "infectious"
+            },
+            {
+              "code": "050112",
+              "word": "cholera"
+            },
+            {
+              "code": "050113",
+              "word": "defeat"
+            },
+            {
+              "code": "050114",
+              "word": "expert"
+            },
+            {
+              "code": "050115",
+              "word": "attend"
+            },
+            {
+              "code": "050116",
+              "word": "physician"
+            },
+            {
+              "code": "050117",
+              "word": "expose"
+            },
+            {
+              "code": "050118",
+              "word": "expose to"
+            },
+            {
+              "code": "050119",
+              "word": "deadly"
+            },
+            {
+              "code": "050120",
+              "word": "cure"
+            },
+            {
+              "code": "050121",
+              "word": "outbreak"
+            },
+            {
+              "code": "050122",
+              "word": "challenge"
+            },
+            {
+              "code": "050123",
+              "word": "victim"
+            },
+            {
+              "code": "050124",
+              "word": "absorb"
+            },
+            {
+              "code": "050125",
+              "word": "suspect"
+            },
+            {
+              "code": "050126",
+              "word": "enquiry"
+            },
+            {
+              "code": "050127",
+              "word": "neighborhood"
+            },
+            {
+              "code": "050128",
+              "word": "severe"
+            },
+            {
+              "code": "050129",
+              "word": "clue"
+            },
+            {
+              "code": "050130",
+              "word": "pump"
+            },
+            {
+              "code": "050131",
+              "word": "foresee"
+            },
+            {
+              "code": "050132",
+              "word": "investigate"
+            },
+            {
+              "code": "050133",
+              "word": "investigation"
+            },
+            {
+              "code": "050134",
+              "word": "blame"
+            },
+            {
+              "code": "050135",
+              "word": "pollute"
+            },
+            {
+              "code": "050136",
+              "word": "handle"
+            },
+            {
+              "code": "050137",
+              "word": "germ"
+            },
+            {
+              "code": "050138",
+              "word": "link"
+            },
+            {
+              "code": "050139",
+              "word": "link to"
+            },
+            {
+              "code": "050140",
+              "word": "announce"
+            },
+            {
+              "code": "050141",
+              "word": "certainty"
+            },
+            {
+              "code": "050142",
+              "word": "instruct"
+            },
+            {
+              "code": "050143",
+              "word": "responsible"
+            },
+            {
+              "code": "050144",
+              "word": "construct"
+            },
+            {
+              "code": "050145",
+              "word": "construction"
+            },
+            {
+              "code": "050146",
+              "word": "contribute"
+            },
+            {
+              "code": "050147",
+              "word": "apart from"
+            },
+            {
+              "code": "050148",
+              "word": "firework"
+            },
+            {
+              "code": "050149",
+              "word": "chart"
+            },
+            {
+              "code": "050150",
+              "word": "creative"
+            },
+            {
+              "code": "050151",
+              "word": "co-operative"
+            },
+            {
+              "code": "050152",
+              "word": "positive"
+            },
+            {
+              "code": "050153",
+              "word": "be strict with"
+            },
+            {
+              "code": "050154",
+              "word": "revolutionary"
+            },
+            {
+              "code": "050155",
+              "word": "movement"
+            },
+            {
+              "code": "050156",
+              "word": "make sense"
+            },
+            {
+              "code": "050157",
+              "word": "backward"
+            },
+            {
+              "code": "050158",
+              "word": "loop"
+            },
+            {
+              "code": "050159",
+              "word": "privately"
+            },
+            {
+              "code": "050160",
+              "word": "spin"
+            },
+            {
+              "code": "050161",
+              "word": "brightness"
+            },
+            {
+              "code": "050162",
+              "word": "enthusiastic"
+            },
+            {
+              "code": "050163",
+              "word": "cautious"
+            },
+            {
+              "code": "050164",
+              "word": "reject"
+            },
+            {
+              "code": "050165",
+              "word": "universe"
+            }
           ]
         },
         {
           "unit": 2,
           "title": "The United Kingdom",
           "words": [
-            "unite", "kingdom", "consist", "consist of", "province",
-            "divide into", "clarify", "accomplish", "conflict", "unwilling",
-            "break away", "union", "credit", "to one's credit", "currency",
-            "institution", "educational", "convenience", "rough", "roughly",
-            "nationwide", "attract", "historical", "architecture", "Roman",
-            "collection", "administration", "port", "countryside", "enjoyable",
-            "leave out", "opportunity", "description", "furnished", "fax",
-            "possibility", "plus", "quarrel", "alike", "take the place of",
-            "break down", "arrange", "wedding", "fold", "sightseeing",
-            "delight", "royal", "uniform", "splendid", "statue", "Greenwich",
-            "longitude", "imaginary", "navigation", "communism", "original",
-            "thrill", "pot", "error"
+            {
+              "code": "050201",
+              "word": "unite"
+            },
+            {
+              "code": "050202",
+              "word": "kingdom"
+            },
+            {
+              "code": "050203",
+              "word": "consist"
+            },
+            {
+              "code": "050204",
+              "word": "consist of"
+            },
+            {
+              "code": "050205",
+              "word": "province"
+            },
+            {
+              "code": "050206",
+              "word": "divide into"
+            },
+            {
+              "code": "050207",
+              "word": "clarify"
+            },
+            {
+              "code": "050208",
+              "word": "accomplish"
+            },
+            {
+              "code": "050209",
+              "word": "conflict"
+            },
+            {
+              "code": "050210",
+              "word": "unwilling"
+            },
+            {
+              "code": "050211",
+              "word": "break away"
+            },
+            {
+              "code": "050212",
+              "word": "union"
+            },
+            {
+              "code": "050213",
+              "word": "credit"
+            },
+            {
+              "code": "050214",
+              "word": "to one's credit"
+            },
+            {
+              "code": "050215",
+              "word": "currency"
+            },
+            {
+              "code": "050216",
+              "word": "institution"
+            },
+            {
+              "code": "050217",
+              "word": "educational"
+            },
+            {
+              "code": "050218",
+              "word": "convenience"
+            },
+            {
+              "code": "050219",
+              "word": "rough"
+            },
+            {
+              "code": "050220",
+              "word": "roughly"
+            },
+            {
+              "code": "050221",
+              "word": "nationwide"
+            },
+            {
+              "code": "050222",
+              "word": "attract"
+            },
+            {
+              "code": "050223",
+              "word": "historical"
+            },
+            {
+              "code": "050224",
+              "word": "architecture"
+            },
+            {
+              "code": "050225",
+              "word": "Roman"
+            },
+            {
+              "code": "050226",
+              "word": "collection"
+            },
+            {
+              "code": "050227",
+              "word": "administration"
+            },
+            {
+              "code": "050228",
+              "word": "port"
+            },
+            {
+              "code": "050229",
+              "word": "countryside"
+            },
+            {
+              "code": "050230",
+              "word": "enjoyable"
+            },
+            {
+              "code": "050231",
+              "word": "leave out"
+            },
+            {
+              "code": "050232",
+              "word": "opportunity"
+            },
+            {
+              "code": "050233",
+              "word": "description"
+            },
+            {
+              "code": "050234",
+              "word": "furnished"
+            },
+            {
+              "code": "050235",
+              "word": "fax"
+            },
+            {
+              "code": "050236",
+              "word": "possibility"
+            },
+            {
+              "code": "050237",
+              "word": "plus"
+            },
+            {
+              "code": "050238",
+              "word": "quarrel"
+            },
+            {
+              "code": "050239",
+              "word": "alike"
+            },
+            {
+              "code": "050240",
+              "word": "take the place of"
+            },
+            {
+              "code": "050241",
+              "word": "break down"
+            },
+            {
+              "code": "050242",
+              "word": "arrange"
+            },
+            {
+              "code": "050243",
+              "word": "wedding"
+            },
+            {
+              "code": "050244",
+              "word": "fold"
+            },
+            {
+              "code": "050245",
+              "word": "sightseeing"
+            },
+            {
+              "code": "050246",
+              "word": "delight"
+            },
+            {
+              "code": "050247",
+              "word": "royal"
+            },
+            {
+              "code": "050248",
+              "word": "uniform"
+            },
+            {
+              "code": "050249",
+              "word": "splendid"
+            },
+            {
+              "code": "050250",
+              "word": "statue"
+            },
+            {
+              "code": "050251",
+              "word": "Greenwich"
+            },
+            {
+              "code": "050252",
+              "word": "longitude"
+            },
+            {
+              "code": "050253",
+              "word": "imaginary"
+            },
+            {
+              "code": "050254",
+              "word": "navigation"
+            },
+            {
+              "code": "050255",
+              "word": "communism"
+            },
+            {
+              "code": "050256",
+              "word": "original"
+            },
+            {
+              "code": "050257",
+              "word": "thrill"
+            },
+            {
+              "code": "050258",
+              "word": "pot"
+            },
+            {
+              "code": "050259",
+              "word": "error"
+            }
           ]
         },
         {
           "unit": 3,
           "title": "Life in the future",
           "words": [
-            "tense", "consistent", "aspect", "impression", "take up",
-            "constant", "constantly", "jet", "jet lag", "flashback", "previous",
-            "uncertain", "guide", "tablet", "expertise", "capsule", "steward",
-            "stewardess", "opening", "sideways", "surrounding", "tolerate",
-            "combination", "lack", "adjustment", "mask", "be back on one's feet",
-            "hover", "carriage"
+            {
+              "code": "050301",
+              "word": "tense"
+            },
+            {
+              "code": "050302",
+              "word": "consistent"
+            },
+            {
+              "code": "050303",
+              "word": "aspect"
+            },
+            {
+              "code": "050304",
+              "word": "impression"
+            },
+            {
+              "code": "050305",
+              "word": "take up"
+            },
+            {
+              "code": "050306",
+              "word": "constant"
+            },
+            {
+              "code": "050307",
+              "word": "constantly"
+            },
+            {
+              "code": "050308",
+              "word": "jet"
+            },
+            {
+              "code": "050309",
+              "word": "jet lag"
+            },
+            {
+              "code": "050310",
+              "word": "flashback"
+            },
+            {
+              "code": "050311",
+              "word": "previous"
+            },
+            {
+              "code": "050312",
+              "word": "uncertain"
+            },
+            {
+              "code": "050313",
+              "word": "guide"
+            },
+            {
+              "code": "050314",
+              "word": "tablet"
+            },
+            {
+              "code": "050315",
+              "word": "expertise"
+            },
+            {
+              "code": "050316",
+              "word": "capsule"
+            },
+            {
+              "code": "050317",
+              "word": "steward"
+            },
+            {
+              "code": "050318",
+              "word": "stewardess"
+            },
+            {
+              "code": "050319",
+              "word": "opening"
+            },
+            {
+              "code": "050320",
+              "word": "sideways"
+            },
+            {
+              "code": "050321",
+              "word": "surrounding"
+            },
+            {
+              "code": "050322",
+              "word": "tolerate"
+            },
+            {
+              "code": "050323",
+              "word": "combination"
+            },
+            {
+              "code": "050324",
+              "word": "lack"
+            },
+            {
+              "code": "050325",
+              "word": "adjustment"
+            },
+            {
+              "code": "050326",
+              "word": "mask"
+            },
+            {
+              "code": "050327",
+              "word": "be back on one's feet"
+            },
+            {
+              "code": "050328",
+              "word": "hover"
+            },
+            {
+              "code": "050329",
+              "word": "carriage"
+            }
           ]
         }
       ]
@@ -293,68 +3356,932 @@
           "unit": 1,
           "title": "Art",
           "words": [
-            "realistic", "abstract", "sculpture", "sculptor", "gallery",
-            "faith", "faithfully", "consequently", "aim", "conventional",
-            "typical", "evident", "renaissance", "adopt", "humanistic",
-            "possess", "possession", "superb", "perspective", "technique",
-            "coincidence", "by coincidence", "masterpiece", "impressionism",
-            "impressionist", "a great deal", "shadow", "ridiculous",
-            "controversial", "attempt", "on the other hand", "predict",
-            "landscape", "specific", "figure", "clay", "critic", "bronze",
-            "marble", "carve", "delicate", "canvas", "allergic", "effectively",
-            "exhibition", "aggressive", "scholar", "flesh", "in the flesh",
-            "geometry", "bunch", "avenue", "preference", "display", "appeal",
-            "appeal to", "fragile", "circular", "metropolitan", "reputation",
-            "civilization", "visual", "fragrant", "contemporary", "permanent",
-            "district", "committee", "signature"
+            {
+              "code": "060101",
+              "word": "realistic"
+            },
+            {
+              "code": "060102",
+              "word": "abstract"
+            },
+            {
+              "code": "060103",
+              "word": "sculpture"
+            },
+            {
+              "code": "060104",
+              "word": "sculptor"
+            },
+            {
+              "code": "060105",
+              "word": "gallery"
+            },
+            {
+              "code": "060106",
+              "word": "faith"
+            },
+            {
+              "code": "060107",
+              "word": "faithfully"
+            },
+            {
+              "code": "060108",
+              "word": "consequently"
+            },
+            {
+              "code": "060109",
+              "word": "aim"
+            },
+            {
+              "code": "060110",
+              "word": "conventional"
+            },
+            {
+              "code": "060111",
+              "word": "typical"
+            },
+            {
+              "code": "060112",
+              "word": "evident"
+            },
+            {
+              "code": "060113",
+              "word": "renaissance"
+            },
+            {
+              "code": "060114",
+              "word": "adopt"
+            },
+            {
+              "code": "060115",
+              "word": "humanistic"
+            },
+            {
+              "code": "060116",
+              "word": "possess"
+            },
+            {
+              "code": "060117",
+              "word": "possession"
+            },
+            {
+              "code": "060118",
+              "word": "superb"
+            },
+            {
+              "code": "060119",
+              "word": "perspective"
+            },
+            {
+              "code": "060120",
+              "word": "technique"
+            },
+            {
+              "code": "060121",
+              "word": "coincidence"
+            },
+            {
+              "code": "060122",
+              "word": "by coincidence"
+            },
+            {
+              "code": "060123",
+              "word": "masterpiece"
+            },
+            {
+              "code": "060124",
+              "word": "impressionism"
+            },
+            {
+              "code": "060125",
+              "word": "impressionist"
+            },
+            {
+              "code": "060126",
+              "word": "a great deal"
+            },
+            {
+              "code": "060127",
+              "word": "shadow"
+            },
+            {
+              "code": "060128",
+              "word": "ridiculous"
+            },
+            {
+              "code": "060129",
+              "word": "controversial"
+            },
+            {
+              "code": "060130",
+              "word": "attempt"
+            },
+            {
+              "code": "060131",
+              "word": "on the other hand"
+            },
+            {
+              "code": "060132",
+              "word": "predict"
+            },
+            {
+              "code": "060133",
+              "word": "landscape"
+            },
+            {
+              "code": "060134",
+              "word": "specific"
+            },
+            {
+              "code": "060135",
+              "word": "figure"
+            },
+            {
+              "code": "060136",
+              "word": "clay"
+            },
+            {
+              "code": "060137",
+              "word": "critic"
+            },
+            {
+              "code": "060138",
+              "word": "bronze"
+            },
+            {
+              "code": "060139",
+              "word": "marble"
+            },
+            {
+              "code": "060140",
+              "word": "carve"
+            },
+            {
+              "code": "060141",
+              "word": "delicate"
+            },
+            {
+              "code": "060142",
+              "word": "canvas"
+            },
+            {
+              "code": "060143",
+              "word": "allergic"
+            },
+            {
+              "code": "060144",
+              "word": "effectively"
+            },
+            {
+              "code": "060145",
+              "word": "exhibition"
+            },
+            {
+              "code": "060146",
+              "word": "aggressive"
+            },
+            {
+              "code": "060147",
+              "word": "scholar"
+            },
+            {
+              "code": "060148",
+              "word": "flesh"
+            },
+            {
+              "code": "060149",
+              "word": "in the flesh"
+            },
+            {
+              "code": "060150",
+              "word": "geometry"
+            },
+            {
+              "code": "060151",
+              "word": "bunch"
+            },
+            {
+              "code": "060152",
+              "word": "avenue"
+            },
+            {
+              "code": "060153",
+              "word": "preference"
+            },
+            {
+              "code": "060154",
+              "word": "display"
+            },
+            {
+              "code": "060155",
+              "word": "appeal"
+            },
+            {
+              "code": "060156",
+              "word": "appeal to"
+            },
+            {
+              "code": "060157",
+              "word": "fragile"
+            },
+            {
+              "code": "060158",
+              "word": "circular"
+            },
+            {
+              "code": "060159",
+              "word": "metropolitan"
+            },
+            {
+              "code": "060160",
+              "word": "reputation"
+            },
+            {
+              "code": "060161",
+              "word": "civilization"
+            },
+            {
+              "code": "060162",
+              "word": "visual"
+            },
+            {
+              "code": "060163",
+              "word": "fragrant"
+            },
+            {
+              "code": "060164",
+              "word": "contemporary"
+            },
+            {
+              "code": "060165",
+              "word": "permanent"
+            },
+            {
+              "code": "060166",
+              "word": "district"
+            },
+            {
+              "code": "060167",
+              "word": "committee"
+            },
+            {
+              "code": "060168",
+              "word": "signature"
+            }
           ]
         },
         {
           "unit": 2,
           "title": "Poems",
           "words": [
-            "poetry", "tick", "rhyme", "convey", "emotion", "nursery",
-            "nursery rhyme", "concrete", "repetition", "contradictory", "hush",
-            "diamond", "brass", "flexible", "pattern", "cottage", "coffin",
-            "sparrow", "kitten", "take it easy", "run out of", "be made up of",
-            "tease", "salty", "droop", "dread", "endless", "syllable",
-            "minimum", "translation", "branch", "melt", "in particular",
-            "eventually", "await", "transform", "revolve", "utter", "sorrow",
-            "bare", "librarian", "forever", "stem", "cement", "section",
-            "appropriate", "exchange", "diploma", "sponsor", "blank", "compass",
-            "championship", "rhythmic", "darkness", "warmth", "try out",
-            "scholarship", "pianist", "violinist", "let out", "load"
+            {
+              "code": "060201",
+              "word": "poetry"
+            },
+            {
+              "code": "060202",
+              "word": "tick"
+            },
+            {
+              "code": "060203",
+              "word": "rhyme"
+            },
+            {
+              "code": "060204",
+              "word": "convey"
+            },
+            {
+              "code": "060205",
+              "word": "emotion"
+            },
+            {
+              "code": "060206",
+              "word": "nursery"
+            },
+            {
+              "code": "060207",
+              "word": "nursery rhyme"
+            },
+            {
+              "code": "060208",
+              "word": "concrete"
+            },
+            {
+              "code": "060209",
+              "word": "repetition"
+            },
+            {
+              "code": "060210",
+              "word": "contradictory"
+            },
+            {
+              "code": "060211",
+              "word": "hush"
+            },
+            {
+              "code": "060212",
+              "word": "diamond"
+            },
+            {
+              "code": "060213",
+              "word": "brass"
+            },
+            {
+              "code": "060214",
+              "word": "flexible"
+            },
+            {
+              "code": "060215",
+              "word": "pattern"
+            },
+            {
+              "code": "060216",
+              "word": "cottage"
+            },
+            {
+              "code": "060217",
+              "word": "coffin"
+            },
+            {
+              "code": "060218",
+              "word": "sparrow"
+            },
+            {
+              "code": "060219",
+              "word": "kitten"
+            },
+            {
+              "code": "060220",
+              "word": "take it easy"
+            },
+            {
+              "code": "060221",
+              "word": "run out of"
+            },
+            {
+              "code": "060222",
+              "word": "be made up of"
+            },
+            {
+              "code": "060223",
+              "word": "tease"
+            },
+            {
+              "code": "060224",
+              "word": "salty"
+            },
+            {
+              "code": "060225",
+              "word": "droop"
+            },
+            {
+              "code": "060226",
+              "word": "dread"
+            },
+            {
+              "code": "060227",
+              "word": "endless"
+            },
+            {
+              "code": "060228",
+              "word": "syllable"
+            },
+            {
+              "code": "060229",
+              "word": "minimum"
+            },
+            {
+              "code": "060230",
+              "word": "translation"
+            },
+            {
+              "code": "060231",
+              "word": "branch"
+            },
+            {
+              "code": "060232",
+              "word": "melt"
+            },
+            {
+              "code": "060233",
+              "word": "in particular"
+            },
+            {
+              "code": "060234",
+              "word": "eventually"
+            },
+            {
+              "code": "060235",
+              "word": "await"
+            },
+            {
+              "code": "060236",
+              "word": "transform"
+            },
+            {
+              "code": "060237",
+              "word": "revolve"
+            },
+            {
+              "code": "060238",
+              "word": "utter"
+            },
+            {
+              "code": "060239",
+              "word": "sorrow"
+            },
+            {
+              "code": "060240",
+              "word": "bare"
+            },
+            {
+              "code": "060241",
+              "word": "librarian"
+            },
+            {
+              "code": "060242",
+              "word": "forever"
+            },
+            {
+              "code": "060243",
+              "word": "stem"
+            },
+            {
+              "code": "060244",
+              "word": "cement"
+            },
+            {
+              "code": "060245",
+              "word": "section"
+            },
+            {
+              "code": "060246",
+              "word": "appropriate"
+            },
+            {
+              "code": "060247",
+              "word": "exchange"
+            },
+            {
+              "code": "060248",
+              "word": "diploma"
+            },
+            {
+              "code": "060249",
+              "word": "sponsor"
+            },
+            {
+              "code": "060250",
+              "word": "blank"
+            },
+            {
+              "code": "060251",
+              "word": "compass"
+            },
+            {
+              "code": "060252",
+              "word": "championship"
+            },
+            {
+              "code": "060253",
+              "word": "rhythmic"
+            },
+            {
+              "code": "060254",
+              "word": "darkness"
+            },
+            {
+              "code": "060255",
+              "word": "warmth"
+            },
+            {
+              "code": "060256",
+              "word": "try out"
+            },
+            {
+              "code": "060257",
+              "word": "scholarship"
+            },
+            {
+              "code": "060258",
+              "word": "pianist"
+            },
+            {
+              "code": "060259",
+              "word": "violinist"
+            },
+            {
+              "code": "060260",
+              "word": "let out"
+            },
+            {
+              "code": "060261",
+              "word": "load"
+            }
           ]
         },
         {
           "unit": 3,
           "title": "A healthy life",
           "words": [
-            "cigarette", "alcohol", "alcoholic", "abuse", "fitness", "sexual",
-            "stress", "stressful", "obesity", "adolescent", "adolescence",
-            "ban", "due", "due to", "tough", "addicted", "addicted to",
-            "nicotine", "accustom", "accustomed", "accustomed to", "withdrawal",
-            "bad-tempered", "automatic", "automatically", "mental", "mentally",
-            "quit", "effect", "lung", "pregnant", "abnormal", "breathless",
-            "unfit", "strengthen", "resolve", "decide on", "packet", "feel like",
-            "relaxation", "desperate", "chemist", "gum", "chewing gum",
-            "disappointed", "weaken", "ashamed", "comprehension",
-            "in spite of", "take risks", "get into", "illegal", "pill",
-            "robbery", "slippery", "at risk", "immune", "survival", "sex",
-            "fluid", "inject", "injection", "needle", "spill", "male",
-            "female", "condom", "prejudice", "judgement", "abortion", "cigar",
-            "embarrassed", "awkward"
+            {
+              "code": "060301",
+              "word": "cigarette"
+            },
+            {
+              "code": "060302",
+              "word": "alcohol"
+            },
+            {
+              "code": "060303",
+              "word": "alcoholic"
+            },
+            {
+              "code": "060304",
+              "word": "abuse"
+            },
+            {
+              "code": "060305",
+              "word": "fitness"
+            },
+            {
+              "code": "060306",
+              "word": "sexual"
+            },
+            {
+              "code": "060307",
+              "word": "stress"
+            },
+            {
+              "code": "060308",
+              "word": "stressful"
+            },
+            {
+              "code": "060309",
+              "word": "obesity"
+            },
+            {
+              "code": "060310",
+              "word": "adolescent"
+            },
+            {
+              "code": "060311",
+              "word": "adolescence"
+            },
+            {
+              "code": "060312",
+              "word": "ban"
+            },
+            {
+              "code": "060313",
+              "word": "due"
+            },
+            {
+              "code": "060314",
+              "word": "due to"
+            },
+            {
+              "code": "060315",
+              "word": "tough"
+            },
+            {
+              "code": "060316",
+              "word": "addicted"
+            },
+            {
+              "code": "060317",
+              "word": "addicted to"
+            },
+            {
+              "code": "060318",
+              "word": "nicotine"
+            },
+            {
+              "code": "060319",
+              "word": "accustom"
+            },
+            {
+              "code": "060320",
+              "word": "accustomed"
+            },
+            {
+              "code": "060321",
+              "word": "accustomed to"
+            },
+            {
+              "code": "060322",
+              "word": "withdrawal"
+            },
+            {
+              "code": "060323",
+              "word": "bad-tempered"
+            },
+            {
+              "code": "060324",
+              "word": "automatic"
+            },
+            {
+              "code": "060325",
+              "word": "automatically"
+            },
+            {
+              "code": "060326",
+              "word": "mental"
+            },
+            {
+              "code": "060327",
+              "word": "mentally"
+            },
+            {
+              "code": "060328",
+              "word": "quit"
+            },
+            {
+              "code": "060329",
+              "word": "effect"
+            },
+            {
+              "code": "060330",
+              "word": "lung"
+            },
+            {
+              "code": "060331",
+              "word": "pregnant"
+            },
+            {
+              "code": "060332",
+              "word": "abnormal"
+            },
+            {
+              "code": "060333",
+              "word": "breathless"
+            },
+            {
+              "code": "060334",
+              "word": "unfit"
+            },
+            {
+              "code": "060335",
+              "word": "strengthen"
+            },
+            {
+              "code": "060336",
+              "word": "resolve"
+            },
+            {
+              "code": "060337",
+              "word": "decide on"
+            },
+            {
+              "code": "060338",
+              "word": "packet"
+            },
+            {
+              "code": "060339",
+              "word": "feel like"
+            },
+            {
+              "code": "060340",
+              "word": "relaxation"
+            },
+            {
+              "code": "060341",
+              "word": "desperate"
+            },
+            {
+              "code": "060342",
+              "word": "chemist"
+            },
+            {
+              "code": "060343",
+              "word": "gum"
+            },
+            {
+              "code": "060344",
+              "word": "chewing gum"
+            },
+            {
+              "code": "060345",
+              "word": "disappointed"
+            },
+            {
+              "code": "060346",
+              "word": "weaken"
+            },
+            {
+              "code": "060347",
+              "word": "ashamed"
+            },
+            {
+              "code": "060348",
+              "word": "comprehension"
+            },
+            {
+              "code": "060349",
+              "word": "in spite of"
+            },
+            {
+              "code": "060350",
+              "word": "take risks"
+            },
+            {
+              "code": "060351",
+              "word": "get into"
+            },
+            {
+              "code": "060352",
+              "word": "illegal"
+            },
+            {
+              "code": "060353",
+              "word": "pill"
+            },
+            {
+              "code": "060354",
+              "word": "robbery"
+            },
+            {
+              "code": "060355",
+              "word": "slippery"
+            },
+            {
+              "code": "060356",
+              "word": "at risk"
+            },
+            {
+              "code": "060357",
+              "word": "immune"
+            },
+            {
+              "code": "060358",
+              "word": "survival"
+            },
+            {
+              "code": "060359",
+              "word": "sex"
+            },
+            {
+              "code": "060360",
+              "word": "fluid"
+            },
+            {
+              "code": "060361",
+              "word": "inject"
+            },
+            {
+              "code": "060362",
+              "word": "injection"
+            },
+            {
+              "code": "060363",
+              "word": "needle"
+            },
+            {
+              "code": "060364",
+              "word": "spill"
+            },
+            {
+              "code": "060365",
+              "word": "male"
+            },
+            {
+              "code": "060366",
+              "word": "female"
+            },
+            {
+              "code": "060367",
+              "word": "condom"
+            },
+            {
+              "code": "060368",
+              "word": "prejudice"
+            },
+            {
+              "code": "060369",
+              "word": "judgement"
+            },
+            {
+              "code": "060370",
+              "word": "abortion"
+            },
+            {
+              "code": "060371",
+              "word": "cigar"
+            },
+            {
+              "code": "060372",
+              "word": "embarrassed"
+            },
+            {
+              "code": "060373",
+              "word": "awkward"
+            }
           ]
         },
         {
           "unit": 4,
           "title": "Global warming",
           "words": [
-            "consume", "renewable", "greenhouse", "come about", "graph",
-            "random", "phenomenon", "subscribe", "subscribe to", "fossil",
-            "fuel", "byproduct", "methane", "quantity", "quantities of", "tend",
-            "go up", "measurement", "per", "data", "result in", "trend",
-            "catastrophe", "flood", "drought"
+            {
+              "code": "060401",
+              "word": "consume"
+            },
+            {
+              "code": "060402",
+              "word": "renewable"
+            },
+            {
+              "code": "060403",
+              "word": "greenhouse"
+            },
+            {
+              "code": "060404",
+              "word": "come about"
+            },
+            {
+              "code": "060405",
+              "word": "graph"
+            },
+            {
+              "code": "060406",
+              "word": "random"
+            },
+            {
+              "code": "060407",
+              "word": "phenomenon"
+            },
+            {
+              "code": "060408",
+              "word": "subscribe"
+            },
+            {
+              "code": "060409",
+              "word": "subscribe to"
+            },
+            {
+              "code": "060410",
+              "word": "fossil"
+            },
+            {
+              "code": "060411",
+              "word": "fuel"
+            },
+            {
+              "code": "060412",
+              "word": "byproduct"
+            },
+            {
+              "code": "060413",
+              "word": "methane"
+            },
+            {
+              "code": "060414",
+              "word": "quantity"
+            },
+            {
+              "code": "060415",
+              "word": "quantities of"
+            },
+            {
+              "code": "060416",
+              "word": "tend"
+            },
+            {
+              "code": "060417",
+              "word": "go up"
+            },
+            {
+              "code": "060418",
+              "word": "measurement"
+            },
+            {
+              "code": "060419",
+              "word": "per"
+            },
+            {
+              "code": "060420",
+              "word": "data"
+            },
+            {
+              "code": "060421",
+              "word": "result in"
+            },
+            {
+              "code": "060422",
+              "word": "trend"
+            },
+            {
+              "code": "060423",
+              "word": "catastrophe"
+            },
+            {
+              "code": "060424",
+              "word": "flood"
+            },
+            {
+              "code": "060425",
+              "word": "drought"
+            }
           ]
         }
       ]
@@ -367,55 +4294,794 @@
           "unit": 1,
           "title": "Living well",
           "words": [
-            "disability", "disabled", "hearing", "eyesight", "syndrome",
-            "ambition", "ambitious", "dictation", "noisy", "suitable", "entry",
-            "beneficial", "in other words", "clumsy", "bump", "outgoing",
-            "adapt", "adapt to", "bench", "cut out", "microscope",
-            "out of breath", "absence", "fellow", "annoy", "annoyed",
-            "annoyance", "all in all", "firm", "software", "sit around",
-            "as well as", "parrot", "tank", "tortoise", "psychology",
-            "psychologically", "make fun of", "encouragement", "conduct",
-            "mainstream", "fulfilling", "never mind", "politics", "abolish",
-            "abolition", "resign", "slavery", "literature", "companion",
-            "assistance", "congratulate", "congratulation", "bowling",
-            "graduation", "certificate", "all the best", "architect",
-            "adequate", "access", "accessible", "wheelchair", "handy",
-            "earphone", "impair", "row", "basement", "outwards", "exit",
-            "meet with", "approval", "dignity", "profit", "community"
+            {
+              "code": "070101",
+              "word": "disability"
+            },
+            {
+              "code": "070102",
+              "word": "disabled"
+            },
+            {
+              "code": "070103",
+              "word": "hearing"
+            },
+            {
+              "code": "070104",
+              "word": "eyesight"
+            },
+            {
+              "code": "070105",
+              "word": "syndrome"
+            },
+            {
+              "code": "070106",
+              "word": "ambition"
+            },
+            {
+              "code": "070107",
+              "word": "ambitious"
+            },
+            {
+              "code": "070108",
+              "word": "dictation"
+            },
+            {
+              "code": "070109",
+              "word": "noisy"
+            },
+            {
+              "code": "070110",
+              "word": "suitable"
+            },
+            {
+              "code": "070111",
+              "word": "entry"
+            },
+            {
+              "code": "070112",
+              "word": "beneficial"
+            },
+            {
+              "code": "070113",
+              "word": "in other words"
+            },
+            {
+              "code": "070114",
+              "word": "clumsy"
+            },
+            {
+              "code": "070115",
+              "word": "bump"
+            },
+            {
+              "code": "070116",
+              "word": "outgoing"
+            },
+            {
+              "code": "070117",
+              "word": "adapt"
+            },
+            {
+              "code": "070118",
+              "word": "adapt to"
+            },
+            {
+              "code": "070119",
+              "word": "bench"
+            },
+            {
+              "code": "070120",
+              "word": "cut out"
+            },
+            {
+              "code": "070121",
+              "word": "microscope"
+            },
+            {
+              "code": "070122",
+              "word": "out of breath"
+            },
+            {
+              "code": "070123",
+              "word": "absence"
+            },
+            {
+              "code": "070124",
+              "word": "fellow"
+            },
+            {
+              "code": "070125",
+              "word": "annoy"
+            },
+            {
+              "code": "070126",
+              "word": "annoyed"
+            },
+            {
+              "code": "070127",
+              "word": "annoyance"
+            },
+            {
+              "code": "070128",
+              "word": "all in all"
+            },
+            {
+              "code": "070129",
+              "word": "firm"
+            },
+            {
+              "code": "070130",
+              "word": "software"
+            },
+            {
+              "code": "070131",
+              "word": "sit around"
+            },
+            {
+              "code": "070132",
+              "word": "as well as"
+            },
+            {
+              "code": "070133",
+              "word": "parrot"
+            },
+            {
+              "code": "070134",
+              "word": "tank"
+            },
+            {
+              "code": "070135",
+              "word": "tortoise"
+            },
+            {
+              "code": "070136",
+              "word": "psychology"
+            },
+            {
+              "code": "070137",
+              "word": "psychologically"
+            },
+            {
+              "code": "070138",
+              "word": "make fun of"
+            },
+            {
+              "code": "070139",
+              "word": "encouragement"
+            },
+            {
+              "code": "070140",
+              "word": "conduct"
+            },
+            {
+              "code": "070141",
+              "word": "mainstream"
+            },
+            {
+              "code": "070142",
+              "word": "fulfilling"
+            },
+            {
+              "code": "070143",
+              "word": "never mind"
+            },
+            {
+              "code": "070144",
+              "word": "politics"
+            },
+            {
+              "code": "070145",
+              "word": "abolish"
+            },
+            {
+              "code": "070146",
+              "word": "abolition"
+            },
+            {
+              "code": "070147",
+              "word": "resign"
+            },
+            {
+              "code": "070148",
+              "word": "slavery"
+            },
+            {
+              "code": "070149",
+              "word": "literature"
+            },
+            {
+              "code": "070150",
+              "word": "companion"
+            },
+            {
+              "code": "070151",
+              "word": "assistance"
+            },
+            {
+              "code": "070152",
+              "word": "congratulate"
+            },
+            {
+              "code": "070153",
+              "word": "congratulation"
+            },
+            {
+              "code": "070154",
+              "word": "bowling"
+            },
+            {
+              "code": "070155",
+              "word": "graduation"
+            },
+            {
+              "code": "070156",
+              "word": "certificate"
+            },
+            {
+              "code": "070157",
+              "word": "all the best"
+            },
+            {
+              "code": "070158",
+              "word": "architect"
+            },
+            {
+              "code": "070159",
+              "word": "adequate"
+            },
+            {
+              "code": "070160",
+              "word": "access"
+            },
+            {
+              "code": "070161",
+              "word": "accessible"
+            },
+            {
+              "code": "070162",
+              "word": "wheelchair"
+            },
+            {
+              "code": "070163",
+              "word": "handy"
+            },
+            {
+              "code": "070164",
+              "word": "earphone"
+            },
+            {
+              "code": "070165",
+              "word": "impair"
+            },
+            {
+              "code": "070166",
+              "word": "row"
+            },
+            {
+              "code": "070167",
+              "word": "basement"
+            },
+            {
+              "code": "070168",
+              "word": "outwards"
+            },
+            {
+              "code": "070169",
+              "word": "exit"
+            },
+            {
+              "code": "070170",
+              "word": "meet with"
+            },
+            {
+              "code": "070171",
+              "word": "approval"
+            },
+            {
+              "code": "070172",
+              "word": "dignity"
+            },
+            {
+              "code": "070173",
+              "word": "profit"
+            },
+            {
+              "code": "070174",
+              "word": "community"
+            }
           ]
         },
         {
           "unit": 2,
           "title": "Robots",
           "words": [
-            "household", "fiction", "desire", "satisfaction", "test out",
-            "bonus", "alarm", "alarmed", "apron", "sympathy", "overweight",
-            "elegant", "favour", "pile", "scan", "fingernail", "absurd",
-            "haircut", "makeup", "accompany", "cushion", "bedding", "necklace",
-            "clerk", "counter", "ring up", "turn around", "awful", "affair",
-            "armchair", "declare", "cuisine", "envy", "leave alone", "digital",
-            "mailbox", "state", "aside", "set aside", "grand", "alphabetical",
-            "receiver", "in all", "affection", "bound", "be bound to",
-            "biography", "holy", "imagination", "transfusion", "part-time",
-            "master's degree", "staff", "navy", "junior", "PhD", "biochemistry",
-            "talent", "chapter", "empire", "theoretical", "framework",
-            "thinking", "divorce", "obey", "disobey", "assessment"
+            {
+              "code": "070201",
+              "word": "household"
+            },
+            {
+              "code": "070202",
+              "word": "fiction"
+            },
+            {
+              "code": "070203",
+              "word": "desire"
+            },
+            {
+              "code": "070204",
+              "word": "satisfaction"
+            },
+            {
+              "code": "070205",
+              "word": "test out"
+            },
+            {
+              "code": "070206",
+              "word": "bonus"
+            },
+            {
+              "code": "070207",
+              "word": "alarm"
+            },
+            {
+              "code": "070208",
+              "word": "alarmed"
+            },
+            {
+              "code": "070209",
+              "word": "apron"
+            },
+            {
+              "code": "070210",
+              "word": "sympathy"
+            },
+            {
+              "code": "070211",
+              "word": "overweight"
+            },
+            {
+              "code": "070212",
+              "word": "elegant"
+            },
+            {
+              "code": "070213",
+              "word": "favour"
+            },
+            {
+              "code": "070214",
+              "word": "pile"
+            },
+            {
+              "code": "070215",
+              "word": "scan"
+            },
+            {
+              "code": "070216",
+              "word": "fingernail"
+            },
+            {
+              "code": "070217",
+              "word": "absurd"
+            },
+            {
+              "code": "070218",
+              "word": "haircut"
+            },
+            {
+              "code": "070219",
+              "word": "makeup"
+            },
+            {
+              "code": "070220",
+              "word": "accompany"
+            },
+            {
+              "code": "070221",
+              "word": "cushion"
+            },
+            {
+              "code": "070222",
+              "word": "bedding"
+            },
+            {
+              "code": "070223",
+              "word": "necklace"
+            },
+            {
+              "code": "070224",
+              "word": "clerk"
+            },
+            {
+              "code": "070225",
+              "word": "counter"
+            },
+            {
+              "code": "070226",
+              "word": "ring up"
+            },
+            {
+              "code": "070227",
+              "word": "turn around"
+            },
+            {
+              "code": "070228",
+              "word": "awful"
+            },
+            {
+              "code": "070229",
+              "word": "affair"
+            },
+            {
+              "code": "070230",
+              "word": "armchair"
+            },
+            {
+              "code": "070231",
+              "word": "declare"
+            },
+            {
+              "code": "070232",
+              "word": "cuisine"
+            },
+            {
+              "code": "070233",
+              "word": "envy"
+            },
+            {
+              "code": "070234",
+              "word": "leave alone"
+            },
+            {
+              "code": "070235",
+              "word": "digital"
+            },
+            {
+              "code": "070236",
+              "word": "mailbox"
+            },
+            {
+              "code": "070237",
+              "word": "state"
+            },
+            {
+              "code": "070238",
+              "word": "aside"
+            },
+            {
+              "code": "070239",
+              "word": "set aside"
+            },
+            {
+              "code": "070240",
+              "word": "grand"
+            },
+            {
+              "code": "070241",
+              "word": "alphabetical"
+            },
+            {
+              "code": "070242",
+              "word": "receiver"
+            },
+            {
+              "code": "070243",
+              "word": "in all"
+            },
+            {
+              "code": "070244",
+              "word": "affection"
+            },
+            {
+              "code": "070245",
+              "word": "bound"
+            },
+            {
+              "code": "070246",
+              "word": "be bound to"
+            },
+            {
+              "code": "070247",
+              "word": "biography"
+            },
+            {
+              "code": "070248",
+              "word": "holy"
+            },
+            {
+              "code": "070249",
+              "word": "imagination"
+            },
+            {
+              "code": "070250",
+              "word": "transfusion"
+            },
+            {
+              "code": "070251",
+              "word": "part-time"
+            },
+            {
+              "code": "070252",
+              "word": "master's degree"
+            },
+            {
+              "code": "070253",
+              "word": "staff"
+            },
+            {
+              "code": "070254",
+              "word": "navy"
+            },
+            {
+              "code": "070255",
+              "word": "junior"
+            },
+            {
+              "code": "070256",
+              "word": "PhD"
+            },
+            {
+              "code": "070257",
+              "word": "biochemistry"
+            },
+            {
+              "code": "070258",
+              "word": "talent"
+            },
+            {
+              "code": "070259",
+              "word": "chapter"
+            },
+            {
+              "code": "070260",
+              "word": "empire"
+            },
+            {
+              "code": "070261",
+              "word": "theoretical"
+            },
+            {
+              "code": "070262",
+              "word": "framework"
+            },
+            {
+              "code": "070263",
+              "word": "thinking"
+            },
+            {
+              "code": "070264",
+              "word": "divorce"
+            },
+            {
+              "code": "070265",
+              "word": "obey"
+            },
+            {
+              "code": "070266",
+              "word": "disobey"
+            },
+            {
+              "code": "070267",
+              "word": "assessment"
+            }
           ]
         },
         {
           "unit": 3,
           "title": "Under the sea",
           "words": [
-            "snorkel", "aquarium", "anecdote", "baleen", "baleen whale",
-            "annual", "migration", "witness", "accommodation", "shore",
-            "offshore", "opposite", "yell", "pause", "oar", "telescope",
-            "teamwork", "blow-hole", "dive", "flee", "harpoon", "drag", "depth",
-            "meantime", "in the meantime", "lip", "overboard", "urge",
-            "abandon", "shark", "help out", "relationship", "conservation",
-            "iceberg", "jog", "seaside", "net", "target", "tide", "driftnet",
-            "dimension", "reflect", "pure", "cell", "aware", "be aware of",
-            "vivid", "neat", "seaweed", "narrow", "flashlight", "upside down",
-            "suck"
+            {
+              "code": "070301",
+              "word": "snorkel"
+            },
+            {
+              "code": "070302",
+              "word": "aquarium"
+            },
+            {
+              "code": "070303",
+              "word": "anecdote"
+            },
+            {
+              "code": "070304",
+              "word": "baleen"
+            },
+            {
+              "code": "070305",
+              "word": "baleen whale"
+            },
+            {
+              "code": "070306",
+              "word": "annual"
+            },
+            {
+              "code": "070307",
+              "word": "migration"
+            },
+            {
+              "code": "070308",
+              "word": "witness"
+            },
+            {
+              "code": "070309",
+              "word": "accommodation"
+            },
+            {
+              "code": "070310",
+              "word": "shore"
+            },
+            {
+              "code": "070311",
+              "word": "offshore"
+            },
+            {
+              "code": "070312",
+              "word": "opposite"
+            },
+            {
+              "code": "070313",
+              "word": "yell"
+            },
+            {
+              "code": "070314",
+              "word": "pause"
+            },
+            {
+              "code": "070315",
+              "word": "oar"
+            },
+            {
+              "code": "070316",
+              "word": "telescope"
+            },
+            {
+              "code": "070317",
+              "word": "teamwork"
+            },
+            {
+              "code": "070318",
+              "word": "blow-hole"
+            },
+            {
+              "code": "070319",
+              "word": "dive"
+            },
+            {
+              "code": "070320",
+              "word": "flee"
+            },
+            {
+              "code": "070321",
+              "word": "harpoon"
+            },
+            {
+              "code": "070322",
+              "word": "drag"
+            },
+            {
+              "code": "070323",
+              "word": "depth"
+            },
+            {
+              "code": "070324",
+              "word": "meantime"
+            },
+            {
+              "code": "070325",
+              "word": "in the meantime"
+            },
+            {
+              "code": "070326",
+              "word": "lip"
+            },
+            {
+              "code": "070327",
+              "word": "overboard"
+            },
+            {
+              "code": "070328",
+              "word": "urge"
+            },
+            {
+              "code": "070329",
+              "word": "abandon"
+            },
+            {
+              "code": "070330",
+              "word": "shark"
+            },
+            {
+              "code": "070331",
+              "word": "help out"
+            },
+            {
+              "code": "070332",
+              "word": "relationship"
+            },
+            {
+              "code": "070333",
+              "word": "conservation"
+            },
+            {
+              "code": "070334",
+              "word": "iceberg"
+            },
+            {
+              "code": "070335",
+              "word": "jog"
+            },
+            {
+              "code": "070336",
+              "word": "seaside"
+            },
+            {
+              "code": "070337",
+              "word": "net"
+            },
+            {
+              "code": "070338",
+              "word": "target"
+            },
+            {
+              "code": "070339",
+              "word": "tide"
+            },
+            {
+              "code": "070340",
+              "word": "driftnet"
+            },
+            {
+              "code": "070341",
+              "word": "dimension"
+            },
+            {
+              "code": "070342",
+              "word": "reflect"
+            },
+            {
+              "code": "070343",
+              "word": "pure"
+            },
+            {
+              "code": "070344",
+              "word": "cell"
+            },
+            {
+              "code": "070345",
+              "word": "aware"
+            },
+            {
+              "code": "070346",
+              "word": "be aware of"
+            },
+            {
+              "code": "070347",
+              "word": "vivid"
+            },
+            {
+              "code": "070348",
+              "word": "neat"
+            },
+            {
+              "code": "070349",
+              "word": "seaweed"
+            },
+            {
+              "code": "070350",
+              "word": "narrow"
+            },
+            {
+              "code": "070351",
+              "word": "flashlight"
+            },
+            {
+              "code": "070352",
+              "word": "upside down"
+            },
+            {
+              "code": "070353",
+              "word": "suck"
+            }
           ]
         }
       ]
@@ -428,21 +5094,314 @@
           "unit": 1,
           "title": "A land of diversity",
           "words": [
-            "California", "illustrate", "distinct", "distinction", "immigrant",
-            "live on", "strait", "Bering Strait", "Arctic", "means",
-            "by means of", "prehistoric", "majority", "ministry", "Catholic",
-            "Alaska", "San Francisco", "adventurer", "make a life", "despite",
-            "hardship", "elect", "federal", "rail", "percentage",
-            "Los Angeles", "Italian", "Denmark", "keep up", "Hollywood", "boom",
-            "aircraft", "Cambodian", "Korea", "Korean", "Pakistan", "Pakistani",
-            "immigrate", "immigration", "racial", "crossing", "vice", "pole",
-            "applicant", "customs", "socialist", "socialism", "occur", "cattle",
-            "indicate", "back to back", "luggage", "shave", "cable",
-            "cable car", "tram", "apparent", "apparently", "brake", "conductor",
-            "slip", "bakery", "ferry", "team up with", "hire", "fascinating",
-            "mark out", "seagull", "take in", "angle", "a great many",
-            "apply for", "nowhere", "miserable", "punishment", "justice",
-            "mourn"
+            {
+              "code": "080101",
+              "word": "California"
+            },
+            {
+              "code": "080102",
+              "word": "illustrate"
+            },
+            {
+              "code": "080103",
+              "word": "distinct"
+            },
+            {
+              "code": "080104",
+              "word": "distinction"
+            },
+            {
+              "code": "080105",
+              "word": "immigrant"
+            },
+            {
+              "code": "080106",
+              "word": "live on"
+            },
+            {
+              "code": "080107",
+              "word": "strait"
+            },
+            {
+              "code": "080108",
+              "word": "Bering Strait"
+            },
+            {
+              "code": "080109",
+              "word": "Arctic"
+            },
+            {
+              "code": "080110",
+              "word": "means"
+            },
+            {
+              "code": "080111",
+              "word": "by means of"
+            },
+            {
+              "code": "080112",
+              "word": "prehistoric"
+            },
+            {
+              "code": "080113",
+              "word": "majority"
+            },
+            {
+              "code": "080114",
+              "word": "ministry"
+            },
+            {
+              "code": "080115",
+              "word": "Catholic"
+            },
+            {
+              "code": "080116",
+              "word": "Alaska"
+            },
+            {
+              "code": "080117",
+              "word": "San Francisco"
+            },
+            {
+              "code": "080118",
+              "word": "adventurer"
+            },
+            {
+              "code": "080119",
+              "word": "make a life"
+            },
+            {
+              "code": "080120",
+              "word": "despite"
+            },
+            {
+              "code": "080121",
+              "word": "hardship"
+            },
+            {
+              "code": "080122",
+              "word": "elect"
+            },
+            {
+              "code": "080123",
+              "word": "federal"
+            },
+            {
+              "code": "080124",
+              "word": "rail"
+            },
+            {
+              "code": "080125",
+              "word": "percentage"
+            },
+            {
+              "code": "080126",
+              "word": "Los Angeles"
+            },
+            {
+              "code": "080127",
+              "word": "Italian"
+            },
+            {
+              "code": "080128",
+              "word": "Denmark"
+            },
+            {
+              "code": "080129",
+              "word": "keep up"
+            },
+            {
+              "code": "080130",
+              "word": "Hollywood"
+            },
+            {
+              "code": "080131",
+              "word": "boom"
+            },
+            {
+              "code": "080132",
+              "word": "aircraft"
+            },
+            {
+              "code": "080133",
+              "word": "Cambodian"
+            },
+            {
+              "code": "080134",
+              "word": "Korea"
+            },
+            {
+              "code": "080135",
+              "word": "Korean"
+            },
+            {
+              "code": "080136",
+              "word": "Pakistan"
+            },
+            {
+              "code": "080137",
+              "word": "Pakistani"
+            },
+            {
+              "code": "080138",
+              "word": "immigrate"
+            },
+            {
+              "code": "080139",
+              "word": "immigration"
+            },
+            {
+              "code": "080140",
+              "word": "racial"
+            },
+            {
+              "code": "080141",
+              "word": "crossing"
+            },
+            {
+              "code": "080142",
+              "word": "vice"
+            },
+            {
+              "code": "080143",
+              "word": "pole"
+            },
+            {
+              "code": "080144",
+              "word": "applicant"
+            },
+            {
+              "code": "080145",
+              "word": "customs"
+            },
+            {
+              "code": "080146",
+              "word": "socialist"
+            },
+            {
+              "code": "080147",
+              "word": "socialism"
+            },
+            {
+              "code": "080148",
+              "word": "occur"
+            },
+            {
+              "code": "080149",
+              "word": "cattle"
+            },
+            {
+              "code": "080150",
+              "word": "indicate"
+            },
+            {
+              "code": "080151",
+              "word": "back to back"
+            },
+            {
+              "code": "080152",
+              "word": "luggage"
+            },
+            {
+              "code": "080153",
+              "word": "shave"
+            },
+            {
+              "code": "080154",
+              "word": "cable"
+            },
+            {
+              "code": "080155",
+              "word": "cable car"
+            },
+            {
+              "code": "080156",
+              "word": "tram"
+            },
+            {
+              "code": "080157",
+              "word": "apparent"
+            },
+            {
+              "code": "080158",
+              "word": "apparently"
+            },
+            {
+              "code": "080159",
+              "word": "brake"
+            },
+            {
+              "code": "080160",
+              "word": "conductor"
+            },
+            {
+              "code": "080161",
+              "word": "slip"
+            },
+            {
+              "code": "080162",
+              "word": "bakery"
+            },
+            {
+              "code": "080163",
+              "word": "ferry"
+            },
+            {
+              "code": "080164",
+              "word": "team up with"
+            },
+            {
+              "code": "080165",
+              "word": "hire"
+            },
+            {
+              "code": "080166",
+              "word": "fascinating"
+            },
+            {
+              "code": "080167",
+              "word": "mark out"
+            },
+            {
+              "code": "080168",
+              "word": "seagull"
+            },
+            {
+              "code": "080169",
+              "word": "take in"
+            },
+            {
+              "code": "080170",
+              "word": "angle"
+            },
+            {
+              "code": "080171",
+              "word": "a great many"
+            },
+            {
+              "code": "080172",
+              "word": "apply for"
+            },
+            {
+              "code": "080173",
+              "word": "nowhere"
+            },
+            {
+              "code": "080174",
+              "word": "miserable"
+            },
+            {
+              "code": "080175",
+              "word": "punishment"
+            },
+            {
+              "code": "080176",
+              "word": "justice"
+            },
+            {
+              "code": "080177",
+              "word": "mourn"
+            }
           ]
         }
       ]

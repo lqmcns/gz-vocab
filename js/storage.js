@@ -60,7 +60,7 @@ class ProgressStorage {
 
   /**
    * 执行云端同步
-   * 同步内容：学习进度 + 用户设置
+   * 同步内容：学习进度 + 用户设置 + 学习会话（中途退出记录）
    */
   async _syncToCloud() {
     if (typeof AuthService === 'undefined' || !AuthService.isLoggedIn()) return;
@@ -72,17 +72,69 @@ class ProgressStorage {
       const settings = (typeof settingsStorage !== 'undefined')
         ? settingsStorage.getSettings()
         : {};
+      // 收集所有学习会话进度（learnflow_ 前缀的 localStorage 项）
+      const learnSessions = this._collectLearnSessions();
       const data = {
         username: AuthService.getUsername(),
         learned: progress,
         stats: stats,
         settings: settings,
+        learnSessions: learnSessions,
         updatedAt: new Date().toISOString(),
       };
       await AuthService.saveCloudData(data);
-      console.log('[ProgressStorage] 云端同步成功（含设置）');
+      console.log('[ProgressStorage] 云端同步成功（含设置和学习会话）');
     } catch (e) {
       console.warn('[ProgressStorage] 云端同步失败:', e);
+    }
+  }
+
+  /**
+   * 收集所有学习会话进度（localStorage 中 learnflow_ 前缀的项）
+   * @returns {object} 以 key 为键的会话数据
+   */
+  _collectLearnSessions() {
+    const sessions = {};
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('learnflow_')) {
+          const data = localStorage.getItem(key);
+          if (data) {
+            sessions[key] = JSON.parse(data);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[ProgressStorage] 收集学习会话失败:', e);
+    }
+    return sessions;
+  }
+
+  /**
+   * 手动触发云端同步（用户点击"手动同步"按钮时调用）
+   * 同步方向：双向（先上传本地数据，再下载云端数据合并）
+   * @returns {Promise<{success: boolean, message: string}>}
+   */
+  async manualSync() {
+    if (typeof AuthService === 'undefined' || !AuthService.isLoggedIn()) {
+      return { success: false, message: '请先登录' };
+    }
+
+    try {
+      // 1. 先上传本地数据到云端
+      await this._syncToCloud();
+
+      // 2. 再从云端下载并合并
+      const loaded = await this.loadFromCloud();
+
+      if (loaded) {
+        return { success: true, message: '同步成功：已上传本地数据并合并云端数据' };
+      }
+      return { success: true, message: '同步成功：已上传本地数据' };
+    } catch (e) {
+      console.warn('[ProgressStorage] 手动同步失败:', e);
+      return { success: false, message: '同步失败：' + (e.message || '未知错误') };
     }
   }
 
@@ -133,6 +185,29 @@ class ProgressStorage {
           }
         } catch (e) {
           console.warn('[ProgressStorage] 应用云端设置失败:', e);
+        }
+      }
+
+      // 3. 合并学习会话（中途退出记录，取最新的）
+      if (cloudData.learnSessions) {
+        try {
+          for (const [key, cloudSession] of Object.entries(cloudData.learnSessions)) {
+            const localData = localStorage.getItem(key);
+            if (localData) {
+              const localSession = JSON.parse(localData);
+              // 取保存时间最新的
+              if (cloudSession.savedAt > (localSession.savedAt || 0)) {
+                localStorage.setItem(key, JSON.stringify(cloudSession));
+              }
+            } else {
+              // 本地没有，直接写入
+              localStorage.setItem(key, JSON.stringify(cloudSession));
+            }
+          }
+          console.log('[ProgressStorage] 云端学习会话加载成功，合并了', Object.keys(cloudData.learnSessions).length, '条记录');
+          mergedSomething = true;
+        } catch (e) {
+          console.warn('[ProgressStorage] 合并学习会话失败:', e);
         }
       }
 
@@ -232,8 +307,15 @@ class ProgressStorage {
   /**
    * 自动更新复习状态
    * 检查所有 mastered 状态的单词，如果距离上次学习时间超过当前复习间隔，则转为 review
+   * 仅在用户启用了艾宾浩斯复习曲线时执行
    */
   _autoUpdateReviewStatus() {
+    // 检查是否启用了艾宾浩斯复习曲线
+    if (typeof settingsStorage !== 'undefined') {
+      const ebbinghausEnabled = settingsStorage.getSetting('ebbinghausReview');
+      if (!ebbinghausEnabled) return; // 未启用则跳过
+    }
+
     try {
       const progress = this.getAllProgress();
       const now = Date.now();
@@ -341,6 +423,7 @@ class SettingsStorage {
       spellMode: 'partial', // 拼写模式：'partial' | 'full' | 'manual'
       learnPhrases: false,  // 是否学习短语（默认关闭，只学单个单词）
       autoPlayAudio: true,  // 学习/拼写时是否自动播放发音（默认开启）
+      ebbinghausReview: false, // 是否启用艾宾浩斯遗忘曲线复习（默认关闭）
     };
   }
 

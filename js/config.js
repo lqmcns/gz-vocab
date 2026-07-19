@@ -11,6 +11,9 @@
  * 如果令牌泄露：去 Gitee 设置里撤销此令牌，生成新令牌后更新下面的 GITEE_TOKEN
  */
 const SITE_CONFIG = {
+  // 应用版本号（每次更新后手动修改）
+  APP_VERSION: '2.1.0',
+
   // Gitee 仓库配置
   GITEE_OWNER: 'northsey',
   GITEE_REPO: 'gaozhong--vocab-database',

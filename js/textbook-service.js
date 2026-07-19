@@ -92,12 +92,89 @@ class TextbookService {
     }));
   }
 
+  /**
+   * 从 words 数组项中提取单词文本（兼容字符串和对象格式）
+   * 新格式：{ code: "010101", word: "survey" }
+   * 旧格式："survey"
+   * @param {string|object} item - words 数组中的一项
+   * @returns {string} 单词文本
+   */
+  _extractWord(item) {
+    if (!item) return '';
+    if (typeof item === 'string') return item;
+    if (typeof item === 'object') return item.word || '';
+    return '';
+  }
+
+  /**
+   * 从 words 数组项中提取长编码（兼容字符串和对象格式）
+   * @param {string|object} item - words 数组中的一项
+   * @param {number} book - 书号（用于动态生成编码）
+   * @param {number} unit - 单元号
+   * @param {number} index - 索引
+   * @returns {string} 长编码
+   */
+  _extractCode(item, book, unit, index) {
+    if (item && typeof item === 'object' && item.code) return item.code;
+    // 动态生成（兼容旧格式）
+    return this.getWordCode(book, unit, index);
+  }
+
   getUnitWords(book, unit) {
     const bookData = this._findBook(book);
     if (!bookData || !bookData.units) return [];
     const unitData = bookData.units.find((u) => u.unit === unit);
     if (!unitData || !unitData.words) return [];
-    return unitData.words;
+    // 兼容新旧格式：统一返回字符串数组
+    return unitData.words.map((w) => this._extractWord(w));
+  }
+
+  /**
+   * 获取指定单元的单词列表（带长编码，原始格式）
+   * @param {number} book - 书号
+   * @param {number} unit - 单元号
+   * @returns {Array<{code: string, word: string}>}
+   */
+  getUnitWordsWithCode(book, unit) {
+    const bookData = this._findBook(book);
+    if (!bookData || !bookData.units) return [];
+    const unitData = bookData.units.find((u) => u.unit === unit);
+    if (!unitData || !unitData.words) return [];
+    return unitData.words.map((w, i) => ({
+      code: this._extractCode(w, book, unit, i),
+      word: this._extractWord(w),
+    }));
+  }
+
+  /**
+   * 生成教材单词的长编码（BBUUWW 格式）
+   * 格式：2位书 + 2位单元 + 2位单词序号
+   * 例如：010101 = 第1本书 第1单元 第1个单词(apple)
+   * @param {number} book - 书号
+   * @param {number} unit - 单元号
+   * @param {number} index - 单词在单元中的索引（从0开始）
+   * @returns {string} 6位长编码
+   */
+  getWordCode(book, unit, index) {
+    const bb = String(book).padStart(2, '0');
+    const uu = String(unit).padStart(2, '0');
+    const ww = String(index + 1).padStart(2, '0');
+    return `${bb}${uu}${ww}`;
+  }
+
+  /**
+   * 根据长编码查找单词
+   * @param {string} code - 6位长编码（BBUUWW）
+   * @returns {object|null} { book, unit, index, word } 或 null
+   */
+  findWordByCode(code) {
+    if (!code || code.length !== 6) return null;
+    const book = parseInt(code.substring(0, 2), 10);
+    const unit = parseInt(code.substring(2, 4), 10);
+    const index = parseInt(code.substring(4, 6), 10) - 1;
+    const words = this.getUnitWords(book, unit);
+    if (index < 0 || index >= words.length) return null;
+    return { book, unit, index, word: words[index] };
   }
 
   /**
@@ -114,7 +191,7 @@ class TextbookService {
       if (!b.units) continue;
       for (const u of b.units) {
         if (!u.words) continue;
-        const found = u.words.some((w) => w.toLowerCase() === lowerWord);
+        const found = u.words.some((w) => this._extractWord(w).toLowerCase() === lowerWord);
         if (found) {
           return {
             book: b.book,
@@ -201,20 +278,25 @@ class TextbookService {
    * 不跳过短语，短语也参与学习
    */
   getMatchedUnitWords(book, unit) {
-    const words = this.getUnitWords(book, unit);
+    // 使用 getUnitWordsWithCode 获取带长编码的单词列表
+    const wordsWithCode = this.getUnitWordsWithCode(book, unit);
     const result = [];
     // fakeId 编码 book 和 unit，确保全局唯一：9000000 + book*1000 + unit*10 + index
     let fakeIdBase = 9000000 + book * 1000 + unit * 10;
 
-    for (let i = 0; i < words.length; i++) {
-      const w = words[i];
+    for (let i = 0; i < wordsWithCode.length; i++) {
+      const item = wordsWithCode[i];
+      const w = item.word;
       if (!w) continue;
 
       const entry = this.matchWordToDictionary(w);
+      // 优先使用 JSON 文件中的长编码
+      const wordCode = item.code || this.getWordCode(book, unit, i);
       if (entry) {
         // 统一格式
         result.push({
           id: entry.id || (fakeIdBase + i),
+          code: wordCode,
           word: entry.word || w,
           phonetic: entry.phonetic || '',
           translation: entry.translation || '',
@@ -229,6 +311,7 @@ class TextbookService {
         // 完全未找到的单词（包括短语）
         result.push({
           id: fakeIdBase + i,
+          code: wordCode,
           word: w,
           phonetic: '',
           translation: '',
@@ -249,13 +332,17 @@ class TextbookService {
    * 用于单词表展示（不跳过短语）
    */
   getUnitWordsWithDict(book, unit) {
-    const words = this.getUnitWords(book, unit);
+    // 使用 getUnitWordsWithCode 获取带长编码的单词列表
+    const wordsWithCode = this.getUnitWordsWithCode(book, unit);
     const result = [];
 
-    for (const w of words) {
+    for (let i = 0; i < wordsWithCode.length; i++) {
+      const item = wordsWithCode[i];
+      const w = item.word;
       const entry = this.matchWordToDictionary(w);
       result.push({
         word: w,
+        code: item.code || this.getWordCode(book, unit, i),
         phonetic: entry ? (entry.phonetic || '') : '',
         translation: entry ? (entry.translation || '') : '',
         pos: entry ? (entry.pos || '') : '',
@@ -274,9 +361,11 @@ class TextbookService {
       if (!b.units) continue;
       for (const u of b.units) {
         if (!u.words) continue;
-        for (const w of u.words) {
+        for (let i = 0; i < u.words.length; i++) {
+          const w = u.words[i];
           result.push({
-            word: w,
+            word: this._extractWord(w),
+            code: this._extractCode(w, b.book, u.unit, i),
             book: b.book,
             bookName: b.name,
             unit: u.unit,

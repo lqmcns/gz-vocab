@@ -426,6 +426,8 @@ function syncSettingsUI() {
   if (learnPhrasesToggle) learnPhrasesToggle.checked = settings.learnPhrases === true;
   const autoPlayToggle = document.getElementById('setting-auto-play-audio');
   if (autoPlayToggle) autoPlayToggle.checked = settings.autoPlayAudio !== false; // 默认开启
+  const ebbinghausToggle = document.getElementById('setting-ebbinghaus-review');
+  if (ebbinghausToggle) ebbinghausToggle.checked = settings.ebbinghausReview === true;
 }
 
 /**
@@ -538,6 +540,31 @@ async function confirmClearCache() {
     } catch (e) {
       console.error('[App] 清除缓存失败:', e);
       showToast('缓存清除完成（部分数据可能已失效）', 'info');
+    }
+  }
+}
+
+/**
+ * 手动同步数据（用户点击"手动同步数据"按钮）
+ * 上传本地数据到云端并下载云端数据合并
+ */
+async function manualSyncData() {
+  const btn = document.getElementById('manual-sync-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '&#x21bb; 同步中...';
+  }
+
+  try {
+    const result = await progressStorage.manualSync();
+    showToast(result.message, result.success ? 'success' : 'error');
+  } catch (e) {
+    console.error('[App] 手动同步失败:', e);
+    showToast('同步失败：' + (e.message || '未知错误'), 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '&#x21bb; 手动同步数据';
     }
   }
 }
@@ -903,9 +930,9 @@ function startReview() {
    =========================== */
 
 /**
- * 每批学习的单词数量
+ * 每次学习会话的最大单词数（随机模式上限，避免一次学习太多）
  */
-const LEARN_BATCH_SIZE = 10;
+const MAX_SESSION_WORDS = 50;
 
 /**
  * 将单词数组按指定大小分批
@@ -931,7 +958,10 @@ function splitIntoBatches(words, batchSize) {
  */
 function createLearnFlow(words, options) {
   options = options || {};
-  const batches = splitIntoBatches(words, LEARN_BATCH_SIZE);
+  // 使用用户设置的每批学习数量（而非硬编码的 10）
+  const settings = (typeof settingsStorage !== 'undefined') ? settingsStorage.getSettings() : {};
+  const batchSz = Math.max(1, settings.batchSize || 5);
+  const batches = splitIntoBatches(words, batchSz);
   return {
     phase: 'study',
     words: words,                // 全部单词（用于 find 查找）
@@ -1103,8 +1133,9 @@ function startNewBatch() {
     return;
   }
 
-  // 随机取一批
-  const batchIds = randomPick(unlearnedIds, Math.min(settings.batchSize, unlearnedIds.length));
+  // 随机取一批（取所有未学的单词，上限 MAX_SESSION_WORDS，按用户设置的 batchSize 分批学习）
+  const sessionSize = Math.min(MAX_SESSION_WORDS, unlearnedIds.length);
+  const batchIds = randomPick(unlearnedIds, sessionSize);
   const batchWords = batchIds.map((id) => wordService.getWordById(id)).filter(Boolean);
 
   if (batchWords.length === 0) {
@@ -1195,9 +1226,9 @@ function startLearnFromSource() {
         };
       });
 
-    // 选择“全部单元”时单词较多，随机抽取一批；指定单元则学习该单元的全部单词
-    if (unitValue === 'all' && batchWords.length > settings.batchSize) {
-      batchWords = randomPick(batchWords, settings.batchSize);
+    // 选择"全部单元"时单词较多，限制为 MAX_SESSION_WORDS 个（按用户设置的 batchSize 分批学习）
+    if (unitValue === 'all' && batchWords.length > MAX_SESSION_WORDS) {
+      batchWords = randomPick(batchWords, MAX_SESSION_WORDS);
     }
   } else if (source === 'learned') {
     // 已学单词复习
@@ -1259,6 +1290,8 @@ function startLearnFromSource() {
  */
 function renderWordWithSyllables(word) {
   if (!word) return '';
+  // 短语（含空格/省略号/斜杠）不分割，直接返回（保留单词间空格）
+  if (/\s|\.\.\.|\/|，/.test(word)) return word;
   // 短单词（<=4字母）不分割
   if (word.length <= 4) return word;
 
@@ -1375,6 +1408,9 @@ async function renderLearnStudy() {
   if (settings.autoPlayAudio !== false) speakWord(word.word);
   // 初始化动态生成的图标
   if (window.initIcons) initIcons();
+
+  // 异步检查是否有缓存的例句（有则直接显示，替换"生成例句"按钮）
+  loadAIExampleForLearn(word);
 }
 
 /**
@@ -1430,20 +1466,33 @@ function updateExampleButton(wordId, hasExample) {
 }
 
 /**
- * 异步加载AI例句（仅当已有缓存时显示）
+ * 异步加载AI例句（已有缓存时直接显示，不自动生成）
  */
 async function loadAIExampleForLearn(word) {
   const flow = AppState.learnFlow;
   if (!flow) return;
 
-  // 仅当已有缓存时才显示
+  // 1. 先检查内存缓存
   if (flow.aiExamples[word.id]) {
     renderLearnExample(flow.aiExamples[word.id], word);
     return;
   }
 
-  // 无缓存时不自动生成，显示"生成例句"按钮
-  // renderLearnStudy已经渲染了按钮，不需要额外操作
+  // 2. 检查 IndexedDB 持久化缓存（跨会话保留）
+  try {
+    if (window.cacheStorage) {
+      const cached = await cacheStorage.getCachedExample(word.word);
+      if (cached) {
+        flow.aiExamples[word.id] = cached;
+        renderLearnExample(cached, word);
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn('[Learn] 读取例句缓存失败:', e);
+  }
+
+  // 3. 无缓存时不自动生成，保留"生成例句"按钮
 }
 
 /**
@@ -1592,6 +1641,10 @@ function saveLearnFlowProgress() {
     try {
       localStorage.setItem(key, JSON.stringify(progress));
       console.log('[LearnFlow] 学习进度已保存:', key);
+      // 触发云端同步（登录状态下生效，防抖2秒）
+      if (typeof progressStorage !== 'undefined' && progressStorage._scheduleCloudSync) {
+        progressStorage._scheduleCloudSync();
+      }
     } catch (e) {
       console.warn('[LearnFlow] 保存进度失败:', e);
     }
@@ -5343,6 +5396,14 @@ function updateAutoPlayAudio(checked) {
   settingsStorage.saveSetting('autoPlayAudio', checked);
 }
 
+/**
+ * 更新艾宾浩斯复习曲线设置
+ */
+function updateEbbinghausReview(checked) {
+  settingsStorage.saveSetting('ebbinghausReview', checked);
+  showToast(checked ? '已开启艾宾浩斯复习曲线，已掌握的单词将按间隔自动转入待复习' : '已关闭艾宾浩斯复习曲线', 'success');
+}
+
 // 暴露到全局
 window.showAuthModal = showAuthModal;
 window.hideAuthModal = hideAuthModal;
@@ -5352,3 +5413,5 @@ window.handleLogout = handleLogout;
 window.updateAccountUI = updateAccountUI;
 window.toggleAccountInfo = toggleAccountInfo;
 window.updateAutoPlayAudio = updateAutoPlayAudio;
+window.updateEbbinghausReview = updateEbbinghausReview;
+window.manualSyncData = manualSyncData;

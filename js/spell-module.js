@@ -454,7 +454,7 @@ const SpellModule = {
       if (this._attempts >= this._maxAttempts) {
         // 超过最大尝试次数
         setTimeout(() => {
-          this._onWordFailed();
+          this._onWordFailed(false);
         }, 800);
       } else {
         // 选错后：不重新生成片段、不清空已选内容，只重新启用按钮让用户继续选当前片段
@@ -499,7 +499,7 @@ const SpellModule = {
       `;
 
       if (this._attempts >= this._maxAttempts) {
-        this._onWordFailed();
+        this._onWordFailed(false);
       } else {
         // 清空输入框让用户重试
         input.value = '';
@@ -513,7 +513,7 @@ const SpellModule = {
    * 学习模式下跳过的单词会进入重试队列
    */
   skipWord() {
-    this._onWordFailed();
+    this._onWordFailed(true);
   },
 
   /**
@@ -843,13 +843,6 @@ const SpellModule = {
           ${this._renderWordWithBlanks()}
         </div>
 
-        <!-- 剩余机会提示 -->
-        <div style="text-align: center; margin-bottom: 0.5rem;">
-          <span class="text-muted" style="font-size: 0.85rem;">
-            剩余机会: ${this._maxAttempts - this._attempts}
-          </span>
-        </div>
-
         <!-- 选项按钮区 -->
         <div id="spell-options" class="spell-options">
           ${this._loadingOptions
@@ -1008,13 +1001,6 @@ const SpellModule = {
           ${this._renderSyllableSlots()}
         </div>
 
-        <!-- 剩余机会提示 -->
-        <div style="text-align: center; margin-bottom: 0.5rem;">
-          <span class="text-muted" style="font-size: 0.85rem;">
-            剩余机会: ${this._maxAttempts - this._attempts}
-          </span>
-        </div>
-
         <!-- 选项按钮区 -->
         <div id="spell-options" class="spell-options">
           ${this._loadingOptions
@@ -1151,13 +1137,6 @@ const SpellModule = {
             "
             onkeydown="if(event.key==='Enter') SpellModule.checkManualInput()"
           />
-        </div>
-
-        <!-- 剩余机会提示 -->
-        <div style="text-align: center; margin-bottom: 0.5rem;">
-          <span class="text-muted" style="font-size: 0.85rem;">
-            剩余机会: ${this._maxAttempts - this._attempts}
-          </span>
         </div>
 
         <!-- 结果提示区 -->
@@ -1315,12 +1294,13 @@ const SpellModule = {
 
   /**
    * 当前单词失败（超过最大尝试次数或被跳过）
+   * @param {boolean} [isSkip=false] - 是否为用户主动跳过（true=跳过自动进入下一个，false=两次拼错后等待用户点击下一个）
    * @private
    */
-  _onWordFailed() {
+  _onWordFailed(isSkip = false) {
     this._stats.total++;
     this._stats.wrong++;
-    this._stats.skipped++;
+    if (isSkip) this._stats.skipped++;
 
     // 更新预览区显示正确答案
     const previewContainer = document.getElementById('spell-preview');
@@ -1372,6 +1352,12 @@ const SpellModule = {
       `;
     }
 
+    // 禁用手动输入框，防止失败后再次按 Enter 触发重复失败
+    const manualInput = document.getElementById('spell-manual-input');
+    if (manualInput) {
+      manualInput.disabled = true;
+    }
+
     const feedbackContainer = document.getElementById('spell-feedback');
     if (feedbackContainer) {
       feedbackContainer.innerHTML = '';
@@ -1387,12 +1373,24 @@ const SpellModule = {
       this._wrongWords.push(this.currentWord);
     }
 
-    showToast('已跳过，继续下一个', 'info');
-
-    // 自动进入下一个单词
-    setTimeout(() => {
-      this.nextWord();
-    }, 1500);
+    if (isSkip) {
+      // 用户主动跳过：自动进入下一个
+      showToast('已跳过，继续下一个', 'info');
+      setTimeout(() => {
+        this.nextWord();
+      }, 1200);
+    } else {
+      // 两次拼错：显示正确答案，等待用户点击"下一个"按钮
+      // 在操作按钮区显示"下一个"按钮，替换原来的操作按钮
+      const wordActions = document.querySelector('.word-actions');
+      if (wordActions) {
+        wordActions.innerHTML = `
+          <button class="btn btn-primary" onclick="SpellModule.nextWord()">
+            下一个 &#x276F;
+          </button>
+        `;
+      }
+    }
   },
 };
 
