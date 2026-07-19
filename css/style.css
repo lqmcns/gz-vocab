@@ -1686,7 +1686,8 @@ select:focus {
   transform: translate(-50%, -50%) scale(0.9);
   width: 90%;
   max-width: 360px;
-  background: var(--bg-card);
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   z-index: 2001;
@@ -1710,7 +1711,7 @@ select:focus {
 .auth-modal-header h3 {
   margin: 0;
   font-size: 1.2rem;
-  color: var(--text);
+  color: var(--text-primary);
 }
 .auth-close-btn {
   background: none;
@@ -1723,8 +1724,8 @@ select:focus {
   transition: all 0.2s;
 }
 .auth-close-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .auth-modal-body {
@@ -1746,8 +1747,8 @@ select:focus {
   border: 1.5px solid var(--border);
   border-radius: 8px;
   font-size: 1rem;
-  background: var(--bg);
-  color: var(--text);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   transition: border-color 0.2s;
   box-sizing: border-box;
 }

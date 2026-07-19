@@ -57,7 +57,7 @@ git commit -m "说明改了什么"
 git push
 
 
-镐冢Vocab私人令牌
+镐冢Vocab私人令牌：
 07854420f21070a7d0a11e83661df5d2
 
 Worker URL：
