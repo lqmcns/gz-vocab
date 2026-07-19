@@ -25,6 +25,7 @@ const progressStorage = new ProgressStorage();
 const settingsStorage = new SettingsStorage();
 const cacheStorage = new CacheStorage();
 const vocabTestStorage = new VocabTestStorage();
+const searchHistoryStorage = new SearchHistoryStorage();
 // 教材服务使用全局已创建的实例（共享缓存数据）
 const textbookService = window.textbookService;
 
@@ -423,8 +424,8 @@ function syncSettingsUI() {
   if (spellModeSelect) spellModeSelect.value = settings.spellMode || 'partial';
   const learnPhrasesToggle = document.getElementById('setting-learn-phrases');
   if (learnPhrasesToggle) learnPhrasesToggle.checked = settings.learnPhrases === true;
-  const workerUrlInput = document.getElementById('setting-worker-url');
-  if (workerUrlInput) workerUrlInput.value = settings.workerUrl || 'https://api.deepseek.com/chat/completions';
+  const autoPlayToggle = document.getElementById('setting-auto-play-audio');
+  if (autoPlayToggle) autoPlayToggle.checked = settings.autoPlayAudio !== false; // 默认开启
 }
 
 /**
@@ -648,6 +649,29 @@ function renderHome() {
         <div class="stat-label">待复习</div>
       </div>
     </div>
+
+    <!-- 最近词汇量检测成绩（仅登录用户显示） -->
+    ${(() => {
+      if (typeof AuthService === 'undefined' || !AuthService.isLoggedIn()) return '';
+      const latest = vocabTestStorage.getLatestResult();
+      if (!latest) return '';
+      const date = new Date(latest.timestamp);
+      const dateStr = `${date.getMonth()+1}月${date.getDate()}日`;
+      return `
+    <div class="card mb-3" style="border-left: 3px solid var(--accent);">
+      <div class="card-header">${Icon.vocabTest} 最近词汇量检测</div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
+        <div>
+          <span style="font-size: 1.8rem; font-weight: 700; color: var(--accent);">${latest.estimatedVocab}</span>
+          <span style="font-size: 0.9rem; color: var(--text-muted); margin-left: 0.3rem;">词</span>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 0.85rem; color: var(--text-muted);">${dateStr} · 正确率 ${latest.accuracy}%</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">${latest.correctCount}/${latest.totalCount} 题正确</div>
+        </div>
+      </div>
+    </div>`;
+    })()}
 
     <!-- 总进度 -->
     <div class="card mb-3">
@@ -1346,7 +1370,9 @@ async function renderLearnStudy() {
   const nextWord = flow.currentBatch[flow.studyIndex + 1];
   if (nextWord) preloadWordAudio(nextWord.word);
 
-  speakWord(word.word);
+  // 自动播放发音（受设置控制）
+  const settings = settingsStorage.getSettings();
+  if (settings.autoPlayAudio !== false) speakWord(word.word);
   // 初始化动态生成的图标
   if (window.initIcons) initIcons();
 }
@@ -1698,6 +1724,11 @@ function startLearnSpell() {
   }
   flow.spellQueue = spellQueue;
 
+  // 判断是否为重拼轮次（没有新批次，只拼错词）
+  const isRespell = flow.carriedWrongWords.length > 0 && flow.currentBatch.every(w =>
+    flow.carriedWrongWords.some(r => r.word === w.word)
+  );
+
   const settings = settingsStorage.getSettings();
   const mode = settings.spellMode || 'partial';
 
@@ -1708,6 +1739,7 @@ function startLearnSpell() {
       learnMode: true,
       targetSection: 'learn',
       onComplete: onLearnSpellComplete,
+      isRespell: isRespell,
     }
   );
 }
@@ -1838,7 +1870,6 @@ function renderLearnComplete() {
 
       <div class="batch-actions">
         <button class="btn btn-primary" onclick="AppState.learnFlow=null; startNewBatch()">继续学习下一批</button>
-        <button class="btn btn-primary" onclick="enterSpellFromLearn()">进入拼写训练</button>
         <button class="btn btn-ghost" onclick="AppState.learnFlow=null; navigate('home')">返回首页</button>
       </div>
     </div>
@@ -2954,7 +2985,7 @@ function renderSearch() {
   section.innerHTML = `
     <div class="mb-3">
       <h2 style="font-size: 1.5rem; margin-bottom: 0.25rem;">${Icon.search} 快速查词</h2>
-      <p class="text-muted" style="font-size: 0.9rem;">输入单词或释义，实时搜索词库</p>
+      <p class="text-muted" style="font-size: 0.9rem;">输入单词或释义，实时搜索词库；点击单词进入 AI 语法助手</p>
     </div>
 
     <!-- 搜索框 -->
@@ -2965,6 +2996,9 @@ function renderSearch() {
         oninput="performSearch(this.value)">
     </div>
 
+    <!-- 查词历史（可折叠） -->
+    <div id="search-history-container"></div>
+
     <!-- 搜索结果 -->
     <div id="search-results">
       <div class="empty-state">
@@ -2973,7 +3007,13 @@ function renderSearch() {
         <div class="empty-sub">支持英文前缀搜索和中文释义搜索</div>
       </div>
     </div>
+
+    <!-- 单词详情 + AI 对话（点击搜索结果后显示） -->
+    <div id="word-detail-container"></div>
   `;
+
+  // 渲染查词历史
+  renderSearchHistory();
 
   // 自动聚焦
   setTimeout(() => {
@@ -2985,11 +3025,103 @@ function renderSearch() {
 }
 
 /**
+ * 渲染查词历史（可折叠）
+ */
+function renderSearchHistory() {
+  const container = document.getElementById('search-history-container');
+  if (!container) return;
+
+  const history = searchHistoryStorage.getHistory();
+  if (history.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  // 从 localStorage 读取折叠状态（默认展开）
+  let collapsed = false;
+  try {
+    collapsed = localStorage.getItem('vocab-search-history-collapsed') === '1';
+  } catch (e) { /* 忽略 */ }
+
+  container.innerHTML = `
+    <div class="search-history-wrap">
+      <div class="search-history-header" onclick="toggleSearchHistory()">
+        <span class="search-history-title">
+          <span style="font-size:0.95rem;">${Icon.search || '📋'}</span> 查词历史
+          <span class="search-history-count">${history.length}</span>
+        </span>
+        <div class="search-history-actions">
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); clearSearchHistory()" title="清空历史">清空</button>
+          <span class="search-history-arrow ${collapsed ? 'collapsed' : ''}" id="search-history-arrow">&#x25BC;</span>
+        </div>
+      </div>
+      <div class="search-history-list ${collapsed ? 'collapsed' : ''}" id="search-history-list">
+        ${history.map((word) => `
+          <div class="search-history-tag">
+            <span onclick="searchFromHistory('${word.replace(/'/g, "\\'")}')">${word}</span>
+            <button class="search-history-remove" onclick="event.stopPropagation(); removeSearchHistoryItem('${word.replace(/'/g, "\\'")}')" title="删除">&times;</button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * 折叠/展开查词历史
+ */
+function toggleSearchHistory() {
+  const list = document.getElementById('search-history-list');
+  const arrow = document.getElementById('search-history-arrow');
+  if (!list || !arrow) return;
+
+  const collapsed = list.classList.toggle('collapsed');
+  arrow.classList.toggle('collapsed', collapsed);
+
+  try {
+    localStorage.setItem('vocab-search-history-collapsed', collapsed ? '1' : '0');
+  } catch (e) { /* 忽略 */ }
+}
+
+/**
+ * 从历史记录点击搜索单词
+ */
+function searchFromHistory(word) {
+  const input = document.getElementById('search-input');
+  if (input) {
+    input.value = word;
+    performSearch(word);
+  }
+}
+
+/**
+ * 删除单条查词历史
+ */
+function removeSearchHistoryItem(word) {
+  searchHistoryStorage.removeRecord(word);
+  renderSearchHistory();
+}
+
+/**
+ * 清空查词历史
+ */
+function clearSearchHistory() {
+  if (!confirm('确定清空全部查词历史？')) return;
+  searchHistoryStorage.clearHistory();
+  renderSearchHistory();
+  showToast('查词历史已清空', 'info');
+}
+
+/**
  * 执行搜索单词
  */
 function performSearch(query) {
   const resultsContainer = document.getElementById('search-results');
   if (!resultsContainer) return;
+
+  // 搜索时隐藏单词详情
+  const detailContainer = document.getElementById('word-detail-container');
+  if (detailContainer) detailContainer.innerHTML = '';
 
   const trimmed = query.trim();
   if (!trimmed) {
@@ -3036,7 +3168,7 @@ function performSearch(query) {
   }
 
   resultsContainer.innerHTML = `
-    <p class="text-muted mb-1" style="font-size: 0.85rem;">找到 ${results.length} 个结果</p>
+    <p class="text-muted mb-1" style="font-size: 0.85rem;">找到 ${results.length} 个结果 · 点击单词进入 AI 语法助手</p>
     ${results.map((word) => {
       // 查找教材位置
       let location = null;
@@ -3045,10 +3177,11 @@ function performSearch(query) {
       }
       return `
         <div class="card mb-1 search-result-item">
-          <div class="search-result-main" onclick="speakWord('${word.word}')">
+          <div class="search-result-main" onclick="openWordDetail(${word.id}, '${word.word.replace(/'/g, "\\'")}')">
             <span class="search-result-word">${word.word}</span>
             ${word.phonetic ? `<span class="search-result-phonetic">${word.phonetic}</span>` : ''}
             ${word.pos ? `<span class="word-pos">${formatPos(word.pos)}</span>` : ''}
+            <span class="search-result-arrow">&#x276F;</span>
           </div>
           <div class="search-result-translation">${word.translation || ''}</div>
           ${location ? `
@@ -3060,6 +3193,285 @@ function performSearch(query) {
       `;
     }).join('')}
   `;
+}
+
+/* ===========================
+   单词详情 + AI 语法助手对话
+   =========================== */
+
+// AI 对话的内存状态（每个单词独立）
+const _wordChatState = {
+  word: null,
+  wordData: null,
+  messages: [], // {role: 'user'|'assistant', content: string}
+  loading: false,
+};
+
+/**
+ * 打开单词详情 + AI 对话面板
+ */
+function openWordDetail(wordId, wordText) {
+  const container = document.getElementById('word-detail-container');
+  if (!container) return;
+
+  // 隐藏搜索结果列表
+  const resultsContainer = document.getElementById('search-results');
+  if (resultsContainer) resultsContainer.innerHTML = '';
+
+  // 获取单词数据
+  let wordData = null;
+  if (wordId) {
+    wordData = wordService.getWordById(wordId);
+  }
+  // 兜底：按文本查找
+  if (!wordData && wordText) {
+    const results = wordService.searchWord(wordText, 1);
+    if (results.length > 0) wordData = results[0];
+  }
+  if (!wordData) {
+    showToast('未找到单词数据', 'error');
+    return;
+  }
+
+  // 记录到查词历史
+  searchHistoryStorage.addRecord(wordData.word);
+  renderSearchHistory();
+
+  // 重置对话状态
+  _wordChatState.word = wordData.word;
+  _wordChatState.wordData = wordData;
+  _wordChatState.messages = [];
+  _wordChatState.loading = false;
+
+  // 查找教材位置
+  let location = null;
+  if (textbookService && textbookService.isLoaded()) {
+    location = textbookService.findWordLocation(wordData.word);
+  }
+
+  container.innerHTML = `
+    <div class="word-detail-card card">
+      <!-- 返回按钮 -->
+      <button class="btn btn-ghost btn-sm word-detail-back" onclick="closeWordDetail()">&#x2190; 返回搜索</button>
+
+      <!-- 单词信息 -->
+      <div class="word-detail-info">
+        <div class="word-detail-header">
+          <div class="word-detail-word-row">
+            <span class="word-detail-word">${wordData.word}</span>
+            <button class="phonetic-btn" onclick="speakWord('${wordData.word.replace(/'/g, "\\'")}')" title="播放发音" style="width:36px;height:36px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" opacity="0.6"/></svg>
+            </button>
+          </div>
+          <div class="word-detail-meta">
+            ${wordData.phonetic ? `<span class="word-detail-phonetic">${wordData.phonetic}</span>` : ''}
+            ${wordData.pos ? `<span class="word-pos">${formatPos(wordData.pos)}</span>` : ''}
+          </div>
+          ${wordData.translation ? `<div class="word-detail-translation">${wordData.translation}</div>` : ''}
+          ${location ? `
+            <button class="learned-word-location" onclick="navigateToWordlistUnit(${location.book}, ${location.unit})">
+              ${location.bookName} Unit ${location.unit}: ${location.title}
+            </button>
+          ` : ''}
+        </div>
+      </div>
+
+      <!-- AI 语法助手对话区 -->
+      <div class="ai-chat-section">
+        <div class="ai-chat-header">
+          <span style="font-weight:600; font-size:0.95rem;">${Icon.challenge || '🤖'} AI 语法助手</span>
+          <span class="ai-chat-status" id="ai-chat-status">就绪</span>
+        </div>
+
+        <!-- 对话消息区 -->
+        <div class="ai-chat-messages" id="ai-chat-messages">
+          <div class="ai-chat-welcome">
+            <div style="font-size:0.9rem; color:var(--text-secondary); line-height:1.6;">
+              你好！我是 AI 语法助手，专注帮你理解单词 <strong style="color:var(--accent);">${wordData.word}</strong> 的用法。
+              <br>你可以问我：用法讲解、例句、近义词辨析、固定搭配等。
+            </div>
+          </div>
+        </div>
+
+        <!-- 快捷问题 -->
+        <div class="ai-chat-quick">
+          <button class="ai-quick-btn" onclick="sendQuickQuestion('请讲解这个词的用法和常见搭配')">用法讲解</button>
+          <button class="ai-quick-btn" onclick="sendQuickQuestion('给我两个例句并翻译')">例句</button>
+          <button class="ai-quick-btn" onclick="sendQuickQuestion('这个词有哪些近义词？如何辨析？')">近义词辨析</button>
+          <button class="ai-quick-btn" onclick="sendQuickQuestion('这个词常考的语法点是什么？')">常考点</button>
+        </div>
+
+        <!-- 输入区 -->
+        <div class="ai-chat-input-area">
+          <input type="text" id="ai-chat-input" placeholder="输入你的问题..."
+            onkeypress="if(event.key==='Enter') sendChatMessage()"
+            autocomplete="off">
+          <button class="btn btn-primary btn-sm" id="ai-chat-send" onclick="sendChatMessage()">发送</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 滚动到详情区
+  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/**
+ * 关闭单词详情，返回搜索
+ */
+function closeWordDetail() {
+  const container = document.getElementById('word-detail-container');
+  if (container) container.innerHTML = '';
+
+  // 恢复搜索结果
+  const input = document.getElementById('search-input');
+  if (input) performSearch(input.value);
+}
+
+/**
+ * 发送快捷问题
+ */
+function sendQuickQuestion(question) {
+  const input = document.getElementById('ai-chat-input');
+  if (input) input.value = question;
+  sendChatMessage();
+}
+
+/**
+ * 发送对话消息
+ */
+async function sendChatMessage() {
+  if (_wordChatState.loading) {
+    showToast('AI 正在回复，请稍候', 'info');
+    return;
+  }
+
+  const input = document.getElementById('ai-chat-input');
+  if (!input) return;
+
+  const userText = input.value.trim();
+  if (!userText) return;
+
+  // 检查 AI 服务
+  if (!window.aiService || !aiService.isConfigured()) {
+    showToast('AI 服务不可用', 'error');
+    return;
+  }
+
+  // 添加用户消息
+  _wordChatState.messages.push({ role: 'user', content: userText });
+  _wordChatState.loading = true;
+
+  // 更新 UI
+  input.value = '';
+  updateChatStatus('思考中...');
+  const sendBtn = document.getElementById('ai-chat-send');
+  if (sendBtn) sendBtn.disabled = true;
+
+  renderChatMessages();
+
+  // 构建系统提示
+  const word = _wordChatState.wordData;
+  const systemPrompt =
+    '你是一个专业的高中英语单词学习助手。用户正在查询单词：' + word.word + '\n' +
+    '单词信息：' + JSON.stringify({
+      word: word.word,
+      phonetic: word.phonetic || '',
+      pos: word.pos || '',
+      translation: word.translation || '',
+    }) + '\n\n' +
+    '回答要求：\n' +
+    '1. 用中文回答，简洁明了，适合中国高中生理解\n' +
+    '2. 围绕该单词的用法、语法、辨析、例句等方面回答\n' +
+    '3. 例句要使用高中英语常考语法结构（定语从句、非谓语、虚拟语气等）\n' +
+    '4. 回答使用纯文本或简单换行，不要使用 markdown 标记\n' +
+    '5. 如果用户问的不是英语相关问题，礼貌引导回单词学习话题';
+
+  // 构建消息数组（保留最近 6 轮对话避免 token 过多）
+  const recentMessages = _wordChatState.messages.slice(-12);
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...recentMessages,
+  ];
+
+  try {
+    const reply = await aiService.chat(messages, 0.5, 800);
+    _wordChatState.messages.push({ role: 'assistant', content: reply });
+  } catch (e) {
+    console.error('[AI Chat] 请求失败:', e);
+    _wordChatState.messages.push({
+      role: 'assistant',
+      content: '抱歉，AI 回复失败：' + (e.message || '网络错误') + '\n请稍后重试。',
+    });
+  } finally {
+    _wordChatState.loading = false;
+    updateChatStatus('就绪');
+    const sendBtn2 = document.getElementById('ai-chat-send');
+    if (sendBtn2) sendBtn2.disabled = false;
+    renderChatMessages();
+  }
+}
+
+/**
+ * 更新对话状态显示
+ */
+function updateChatStatus(text) {
+  const status = document.getElementById('ai-chat-status');
+  if (status) {
+    status.textContent = text;
+    status.className = 'ai-chat-status ' + (text === '就绪' ? '' : 'loading');
+  }
+}
+
+/**
+ * 渲染对话消息列表
+ */
+function renderChatMessages() {
+  const container = document.getElementById('ai-chat-messages');
+  if (!container) return;
+
+  const messages = _wordChatState.messages;
+  if (messages.length === 0) {
+    // 保留欢迎语
+    return;
+  }
+
+  container.innerHTML = messages.map((msg) => {
+    if (msg.role === 'user') {
+      return `
+        <div class="ai-chat-msg user">
+          <div class="ai-chat-bubble user-bubble">${escapeHtml(msg.content)}</div>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="ai-chat-msg assistant">
+          <div class="ai-chat-avatar">AI</div>
+          <div class="ai-chat-bubble assistant-bubble">${escapeHtml(msg.content).replace(/\n/g, '<br>')}</div>
+        </div>
+      `;
+    }
+  }).join('') + (_wordChatState.loading ? `
+    <div class="ai-chat-msg assistant">
+      <div class="ai-chat-avatar">AI</div>
+      <div class="ai-chat-bubble assistant-bubble ai-typing">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  ` : '');
+
+  // 滚动到底部
+  container.scrollTop = container.scrollHeight;
+}
+
+/**
+ * HTML 转义（防止 XSS）
+ */
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 /* ===========================
@@ -4139,6 +4551,7 @@ const VocabTestModule = {
           <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">请选择该单词的正确释义</div>
           <div style="font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem;">
             ${word.word}
+            ${word.pos ? `<span style="font-size: 1rem; font-weight: 400; color: var(--text-muted); margin-left: 0.5rem;">${formatPos(word.pos)}</span>` : ''}
           </div>
           ${word.phonetic ? `<div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">${word.phonetic}</div>` : '<div style="margin-bottom: 1rem;"></div>'}
           <button class="btn btn-ghost btn-sm" onclick="speakWord('${word.word.replace(/'/g, "\\'")}')" style="margin-bottom: 1rem;">
@@ -4202,6 +4615,7 @@ const VocabTestModule = {
           <!-- 中文释义 -->
           <div style="font-size: 1.4rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">
             ${word.translation}
+            ${word.pos ? `<span style="font-size: 0.9rem; font-weight: 400; color: var(--text-muted); margin-left: 0.5rem;">${formatPos(word.pos)}</span>` : ''}
           </div>
           ${word.phonetic ? `<div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">${word.phonetic}</div>` : '<div style="margin-bottom: 1rem;"></div>'}
           <button class="btn btn-ghost btn-sm" onclick="speakWord('${word.word.replace(/'/g, "\\'")}')" style="margin-bottom: 1rem;">
@@ -4881,22 +5295,52 @@ function handleLogout() {
  * 更新设置面板中的账号状态显示
  */
 function updateAccountUI() {
-  const desc = document.getElementById('account-status-desc');
-  const actions = document.getElementById('account-actions');
-
-  if (!desc || !actions) return;
+  const loggedOut = document.getElementById('account-logged-out');
+  const loggedIn = document.getElementById('account-logged-in');
+  if (!loggedOut || !loggedIn) return;
 
   if (AuthService.isLoggedIn()) {
     const user = AuthService.getCurrentUser();
-    desc.innerHTML = `已登录：<strong>${user.nickname}</strong>（${user.username}）<br>学习进度自动同步到云端`;
-    actions.innerHTML = `<button class="btn btn-danger btn-sm" onclick="handleLogout()">退出登录</button>`;
+    loggedOut.style.display = 'none';
+    loggedIn.style.display = 'block';
+
+    // 更新显示名
+    const displayName = document.getElementById('account-display-name');
+    if (displayName) displayName.textContent = user.nickname || user.username;
+
+    // 更新详细信息
+    const detailUsername = document.getElementById('account-detail-username');
+    const detailNickname = document.getElementById('account-detail-nickname');
+    const detailLearned = document.getElementById('account-detail-learned');
+    if (detailUsername) detailUsername.textContent = user.username;
+    if (detailNickname) detailNickname.textContent = user.nickname || user.username;
+    if (detailLearned) {
+      const stats = progressStorage.getProgressStats();
+      detailLearned.textContent = stats.totalLearned || 0;
+    }
   } else {
-    desc.textContent = '未登录，学习进度仅保存在本地';
-    actions.innerHTML = `
-      <button class="btn btn-primary btn-sm" onclick="showAuthModal('login')">登录</button>
-      <button class="btn btn-secondary btn-sm" onclick="showAuthModal('register')">注册</button>
-    `;
+    loggedOut.style.display = 'block';
+    loggedIn.style.display = 'none';
   }
+}
+
+/**
+ * 切换账号信息详情的展开/折叠
+ */
+function toggleAccountInfo() {
+  const detail = document.getElementById('account-info-detail');
+  const arrow = document.getElementById('account-info-arrow');
+  if (!detail) return;
+  const isOpen = detail.style.display !== 'none';
+  detail.style.display = isOpen ? 'none' : 'block';
+  if (arrow) arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+}
+
+/**
+ * 更新自动播放音频设置
+ */
+function updateAutoPlayAudio(checked) {
+  settingsStorage.saveSetting('autoPlayAudio', checked);
 }
 
 // 暴露到全局
@@ -4906,3 +5350,5 @@ window.switchAuthMode = switchAuthMode;
 window.handleAuthSubmit = handleAuthSubmit;
 window.handleLogout = handleLogout;
 window.updateAccountUI = updateAccountUI;
+window.toggleAccountInfo = toggleAccountInfo;
+window.updateAutoPlayAudio = updateAutoPlayAudio;

@@ -60,6 +60,7 @@ class ProgressStorage {
 
   /**
    * 执行云端同步
+   * 同步内容：学习进度 + 用户设置
    */
   async _syncToCloud() {
     if (typeof AuthService === 'undefined' || !AuthService.isLoggedIn()) return;
@@ -67,29 +68,38 @@ class ProgressStorage {
     try {
       const progress = this.getAllProgress();
       const stats = this.getProgressStats();
+      // 读取当前设置（合并到云端）
+      const settings = (typeof settingsStorage !== 'undefined')
+        ? settingsStorage.getSettings()
+        : {};
       const data = {
         username: AuthService.getUsername(),
         learned: progress,
         stats: stats,
+        settings: settings,
         updatedAt: new Date().toISOString(),
       };
       await AuthService.saveCloudData(data);
-      console.log('[ProgressStorage] 云端同步成功');
+      console.log('[ProgressStorage] 云端同步成功（含设置）');
     } catch (e) {
       console.warn('[ProgressStorage] 云端同步失败:', e);
     }
   }
 
   /**
-   * 从云端加载学习数据（登录后调用）
+   * 从云端加载学习数据和设置（登录后调用）
    */
   async loadFromCloud() {
     if (typeof AuthService === 'undefined' || !AuthService.isLoggedIn()) return false;
     
     try {
       const cloudData = await AuthService.loadCloudData();
-      if (cloudData && cloudData.learned) {
-        // 合并云端数据和本地数据（取最新的）
+      if (!cloudData) return false;
+
+      let mergedSomething = false;
+
+      // 1. 合并学习进度（取最新的）
+      if (cloudData.learned) {
         const localProgress = this.getAllProgress();
         const merged = { ...localProgress };
         
@@ -101,9 +111,32 @@ class ProgressStorage {
         }
         
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(merged));
-        console.log('[ProgressStorage] 云端数据加载成功，合并了', Object.keys(cloudData.learned).length, '条记录');
-        return true;
+        console.log('[ProgressStorage] 云端进度加载成功，合并了', Object.keys(cloudData.learned).length, '条记录');
+        mergedSomething = true;
       }
+
+      // 2. 合并用户设置（云端有则覆盖本地，因为设置没有时间戳，以云端为准）
+      if (cloudData.settings && typeof settingsStorage !== 'undefined') {
+        try {
+          const localSettings = settingsStorage.getSettings();
+          // 合并：云端设置优先，但保留本地可能有但云端没有的字段
+          const mergedSettings = { ...localSettings, ...cloudData.settings };
+          localStorage.setItem(settingsStorage.STORAGE_KEY, JSON.stringify(mergedSettings));
+          console.log('[ProgressStorage] 云端设置加载成功');
+          mergedSomething = true;
+
+          // 应用合并后的设置（如暗色模式、语速等）
+          if (typeof restoreSettings === 'function') {
+            restoreSettings();
+          } else if (typeof syncSettingsUI === 'function') {
+            syncSettingsUI();
+          }
+        } catch (e) {
+          console.warn('[ProgressStorage] 应用云端设置失败:', e);
+        }
+      }
+
+      return mergedSomething;
     } catch (e) {
       console.warn('[ProgressStorage] 加载云端数据失败:', e);
     }
@@ -307,6 +340,7 @@ class SettingsStorage {
       voiceRate: 0.85,     // 语音朗读速度
       spellMode: 'partial', // 拼写模式：'partial' | 'full' | 'manual'
       learnPhrases: false,  // 是否学习短语（默认关闭，只学单个单词）
+      autoPlayAudio: true,  // 学习/拼写时是否自动播放发音（默认开启）
     };
   }
 
@@ -328,6 +362,7 @@ class SettingsStorage {
 
   /**
    * 保存单个设置项
+   * 保存后会触发云端同步（防抖，登录状态下生效）
    * @param {string} key - 设置键名
    * @param {*} value - 设置值
    */
@@ -336,6 +371,11 @@ class SettingsStorage {
       const settings = this.getSettings();
       settings[key] = value;
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
+
+      // 触发云端同步（复用 ProgressStorage 的防抖机制）
+      if (typeof progressStorage !== 'undefined' && progressStorage._scheduleCloudSync) {
+        progressStorage._scheduleCloudSync();
+      }
     } catch (e) {
       console.error('[SettingsStorage] 保存设置失败:', e);
     }
@@ -613,9 +653,92 @@ class VocabTestStorage {
 }
 
 /* ===========================
+   SearchHistoryStorage - 查词历史存储（localStorage）
+   记录用户在查词界面查过的单词，支持折叠展示
+   =========================== */
+class SearchHistoryStorage {
+  constructor() {
+    this.STORAGE_KEY = 'vocab-search-history';
+    /** 最多保留的查词记录条数 */
+    this.MAX_RECORDS = 50;
+  }
+
+  /**
+   * 添加一条查词记录（去重，最新置顶）
+   * @param {string} word - 查询的单词
+   */
+  addRecord(word) {
+    if (!word || typeof word !== 'string') return;
+    const trimmed = word.trim();
+    if (!trimmed) return;
+
+    try {
+      const history = this.getHistory();
+      // 去重：移除已存在的相同记录（不区分大小写）
+      const filtered = history.filter(
+        (w) => w.toLowerCase() !== trimmed.toLowerCase()
+      );
+      // 最新置顶
+      filtered.unshift(trimmed);
+      // 超出上限时移除末尾
+      if (filtered.length > this.MAX_RECORDS) {
+        filtered.splice(this.MAX_RECORDS);
+      }
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filtered));
+    } catch (e) {
+      console.error('[SearchHistoryStorage] 保存查词记录失败:', e);
+    }
+  }
+
+  /**
+   * 获取查词历史
+   * @returns {string[]} 查词记录数组（最新在前）
+   */
+  getHistory() {
+    try {
+      const data = localStorage.getItem(this.STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      console.error('[SearchHistoryStorage] 读取历史失败:', e);
+      return [];
+    }
+  }
+
+  /**
+   * 删除单条查词记录
+   * @param {string} word - 要删除的单词
+   */
+  removeRecord(word) {
+    if (!word) return;
+    try {
+      const history = this.getHistory();
+      const filtered = history.filter(
+        (w) => w.toLowerCase() !== word.toLowerCase()
+      );
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filtered));
+    } catch (e) {
+      console.error('[SearchHistoryStorage] 删除记录失败:', e);
+    }
+  }
+
+  /**
+   * 清空所有查词历史
+   */
+  clearHistory() {
+    try {
+      localStorage.removeItem(this.STORAGE_KEY);
+      console.log('[SearchHistoryStorage] 查词历史已清空');
+    } catch (e) {
+      console.error('[SearchHistoryStorage] 清空历史失败:', e);
+    }
+  }
+}
+
+/* ===========================
    导出为全局可用
    =========================== */
 window.ProgressStorage = ProgressStorage;
 window.SettingsStorage = SettingsStorage;
 window.CacheStorage = CacheStorage;
 window.VocabTestStorage = VocabTestStorage;
+window.SearchHistoryStorage = SearchHistoryStorage;

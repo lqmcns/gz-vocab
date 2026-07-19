@@ -494,6 +494,18 @@ class AIService {
   }
 
   /**
+   * AI 对话（查词界面用）
+   * 以单词学习助手的身份回答用户关于单词的用法、语法、辨析等问题
+   * @param {Array<{role: string, content: string}>} messages - OpenAI 格式消息数组（含 system + 历史消息）
+   * @param {number} [temperature=0.5] - 生成温度
+   * @param {number} [maxTokens=600] - 最大 token
+   * @returns {Promise<string>} AI 回复内容
+   */
+  async chat(messages, temperature = 0.5, maxTokens = 600) {
+    return await this._callWorker(messages, temperature, maxTokens);
+  }
+
+  /**
    * 检查 AI 服务是否可用
    * @returns {boolean} 是否已配置
    */

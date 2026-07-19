@@ -1043,8 +1043,17 @@ select:focus {
 }
 
 .setting-control input[type="range"] {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* 让语音速度滑块和显示文字横向排列并占满 */
+.setting-control:has(input[type="range"]) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .setting-control input[type="number"] {

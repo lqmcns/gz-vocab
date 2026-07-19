@@ -113,6 +113,18 @@ const SpellModule = {
   _maxAttempts: 2,
 
   /**
+   * 是否处于"重新拼写"轮次（拼错后的强制重拼）
+   * @private
+   */
+  _isRespell: false,
+
+  /**
+   * 重新拼写轮次开始前的统计数据（用于重拼结束后合并显示）
+   * @private
+   */
+  _preRespellStats: null,
+
+  /**
    * 选项加载中标志
    * @private
    */
@@ -184,6 +196,9 @@ const SpellModule = {
     this._onCompleteCallback = options.onComplete || null;
     this._targetSection = options.targetSection || 'spell';
     this._title = options.title || '';
+    // 学习模式传入的重拼标记（学习模式下重拼错词时设为 true）
+    this._isRespell = options.isRespell || false;
+    this._preRespellStats = null;
 
     const section = document.getElementById(this._targetSection);
     if (section) {
@@ -234,6 +249,7 @@ const SpellModule = {
 
   /**
    * 训练完成，显示统计结果
+   * 如果有拼错的单词且不在学习模式、不在重拼轮次中，先进入"重新拼写"轮次
    */
   complete() {
     const section = document.getElementById(this._targetSection);
@@ -253,11 +269,64 @@ const SpellModule = {
       return;
     }
 
+    // 独立模式：如果有拼错的单词且还没进入重拼轮次，先进入"重新拼写"
+    if (!this._isRespell && this._wrongWords.length > 0) {
+      this._preRespellStats = { total, correct, wrong, skipped, accuracy };
+      this._startRespell();
+      return;
+    }
+
+    // 正式显示统计结果（如果经历了重拼，合并数据）
+    const displayStats = this._isRespell && this._preRespellStats
+      ? {
+          total: this._preRespellStats.total,
+          correct: this._preRespellStats.correct,
+          wrong: this._preRespellStats.wrong,
+          skipped: this._preRespellStats.skipped,
+          accuracy: this._preRespellStats.accuracy,
+          respellTotal: total,
+          respellCorrect: correct,
+        }
+      : { total, correct, wrong, skipped, accuracy };
+
+    this._renderCompleteStats(section, displayStats);
+  },
+
+  /**
+   * 开始"重新拼写"轮次
+   * 使用手动拼写模式（输入整个单词），页面显示"重新拼写"字样
+   */
+  _startRespell() {
+    this._isRespell = true;
+    this._words = [...this._wrongWords];
+    this._wrongWords = [];
+    this._wordIndex = 0;
+    this._stats = { total: 0, correct: 0, wrong: 0, skipped: 0 };
+
+    showToast(`有 ${this._words.length} 个单词需要重新拼写`, 'info');
+
+    // 加载第一个单词，使用 manual 模式
+    this._loadCurrentWord();
+  },
+
+  /**
+   * 渲染训练完成统计页
+   */
+  _renderCompleteStats(section, stats) {
     const modeNames = {
       partial: '部分挖空选词',
       full: '完整音节选词',
       manual: '手动拼写',
     };
+
+    const { total, correct, wrong, skipped, accuracy } = stats;
+    const respellInfo = stats.respellTotal !== undefined
+      ? `
+        <div style="display: flex; justify-content: space-between; padding: 0.3rem 0; border-bottom: 1px solid var(--border); color: var(--info);">
+          <span>重新拼写</span>
+          <strong>${stats.respellCorrect} / ${stats.respellTotal}</strong>
+        </div>`
+      : '';
 
     section.innerHTML = `
       <div class="empty-state">
@@ -284,6 +353,7 @@ const SpellModule = {
               <span>跳过</span>
               <strong>${skipped}</strong>
             </div>
+            ${respellInfo}
             <div style="display: flex; justify-content: space-between; padding: 0.3rem 0;">
               <span>正确率</span>
               <strong>${accuracy}%</strong>
@@ -387,21 +457,13 @@ const SpellModule = {
           this._onWordFailed();
         }, 800);
       } else {
-        // 完整音节模式：重新打乱选项并清空已选内容
+        // 选错后：不重新生成片段、不清空已选内容，只重新启用按钮让用户继续选当前片段
         setTimeout(() => {
-          if (this._actualMode === 'full') {
-            // 清空已选音节，重新打乱选项
-            this._userSelections = [];
-            this._currentOptions = shuffleArray([...this._syllables]);
-            this._renderFullMode();
-          } else {
-            // 其他模式：启用按钮让用户重新选择
-            buttons.forEach((btn, i) => {
-              if (i === optionIndex) return;
-              btn.disabled = false;
-              btn.style.animation = '';
-            });
-          }
+          buttons.forEach((btn, i) => {
+            if (i === optionIndex) return; // 跳过选错的那个按钮
+            btn.disabled = false;
+            btn.style.animation = '';
+          });
         }, 600);
       }
     }
@@ -489,12 +551,16 @@ const SpellModule = {
     // 根据模式准备
     this._actualMode = this.mode;
 
-    // 短语（含空格/省略号/斜杠）强制使用手动输入模式
-    const isPhrase = this.currentWord.isPhrase ||
+    // 重新拼写轮次：强制使用手动拼写模式（输入整个单词）
+    if (this._isRespell) {
+      this._actualMode = 'manual';
+    } else if (
+      this.currentWord.isPhrase ||
       this.currentWord.word.includes(' ') ||
       this.currentWord.word.includes('...') ||
-      this.currentWord.word.includes('/');
-    if (isPhrase) {
+      this.currentWord.word.includes('/')
+    ) {
+      // 短语（含空格/省略号/斜杠）强制使用手动输入模式
       this._actualMode = 'manual';
     } else if (this.mode === 'partial') {
       // 部分挖空模式：尝试准备空缺
@@ -750,6 +816,7 @@ const SpellModule = {
     );
 
     section.innerHTML = `
+      ${this._renderRespellBadge()}
       <!-- 批次进度 -->
       <div class="step-indicator">
         <span class="step-text">
@@ -810,9 +877,10 @@ const SpellModule = {
       await this._loadOptionsForCurrent();
     }
 
-    // 自动播放发音
+    // 自动播放发音（受设置控制）
     if (this._blankIndex === 0) {
-      speakWord(this.currentWord.word);
+      const settings = (typeof settingsStorage !== 'undefined') ? settingsStorage.getSettings() : {};
+      if (settings.autoPlayAudio !== false) speakWord(this.currentWord.word);
     }
   },
 
@@ -913,6 +981,7 @@ const SpellModule = {
     );
 
     section.innerHTML = `
+      ${this._renderRespellBadge()}
       <!-- 批次进度 -->
       <div class="step-indicator">
         <span class="step-text">
@@ -973,7 +1042,8 @@ const SpellModule = {
     }
 
     if (this._blankIndex === 0) {
-      speakWord(this.currentWord.word);
+      const settings = (typeof settingsStorage !== 'undefined') ? settingsStorage.getSettings() : {};
+      if (settings.autoPlayAudio !== false) speakWord(this.currentWord.word);
     }
   },
 
@@ -1007,6 +1077,23 @@ const SpellModule = {
      =========================== */
 
   /**
+   * 渲染"重新拼写"标识（重拼轮次时显示）
+   * @returns {string} 标识 HTML，非重拼轮次返回空字符串
+   */
+  _renderRespellBadge() {
+    if (!this._isRespell) return '';
+    return `
+      <div style="text-align: center; margin-bottom: 1rem;">
+        <span style="
+          display: inline-block; padding: 0.3rem 1rem;
+          background: var(--warning-light); color: var(--warning);
+          border-radius: 20px; font-size: 0.9rem; font-weight: 600;
+        ">&#x1F504; 重新拼写</span>
+      </div>
+    `;
+  },
+
+  /**
    * 渲染手动拼写模式界面
    * @private
    */
@@ -1019,6 +1106,7 @@ const SpellModule = {
     );
 
     section.innerHTML = `
+      ${this._renderRespellBadge()}
       <!-- 批次进度 -->
       <div class="step-indicator">
         <span class="step-text">
@@ -1096,9 +1184,10 @@ const SpellModule = {
       if (input) input.focus();
     }, 100);
 
-    // 自动播放发音
+    // 自动播放发音（受设置控制）
     if (this._blankIndex === 0) {
-      speakWord(this.currentWord.word);
+      const settings = (typeof settingsStorage !== 'undefined') ? settingsStorage.getSettings() : {};
+      if (settings.autoPlayAudio !== false) speakWord(this.currentWord.word);
     }
   },
 
@@ -1293,8 +1382,8 @@ const SpellModule = {
       progressStorage.saveProgress(this.currentWord.id, 'review');
     }
 
-    // 学习模式下收集错误单词用于重试
-    if (this._learnMode && this.currentWord) {
+    // 收集错误单词用于重新拼写（学习模式和独立模式都收集）
+    if (this.currentWord) {
       this._wrongWords.push(this.currentWord);
     }
 

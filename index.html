@@ -130,8 +130,54 @@
       <button class="settings-close" onclick="toggleSettings(false)">&times;</button>
     </div>
 
+    <!-- 账号管理（移到最上面） -->
+    <div class="setting-group" id="account-section">
+      <!-- 未登录状态 -->
+      <div id="account-logged-out">
+        <div class="setting-label">账号管理</div>
+        <div class="setting-desc">未登录，学习进度仅保存在本地</div>
+        <div class="flex gap-1" style="margin-top: 0.5rem;">
+          <button class="btn btn-primary btn-sm" onclick="showAuthModal('login')">登录</button>
+          <button class="btn btn-secondary btn-sm" onclick="showAuthModal('register')">注册</button>
+        </div>
+      </div>
+
+      <!-- 已登录状态（折叠菜单） -->
+      <div id="account-logged-in" style="display:none;">
+        <div class="account-header" onclick="toggleAccountInfo()" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.8rem; background:var(--bg-tertiary); border-radius:8px; transition:background 0.2s;">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span style="font-size:1.3rem;">&#x1F464;</span>
+            <div>
+              <div style="font-weight:600; font-size:0.95rem;" id="account-display-name">用户名</div>
+              <div style="font-size:0.8rem; color:var(--text-muted);">已登录 · 点击查看详情</div>
+            </div>
+          </div>
+          <span id="account-info-arrow" style="transition:transform 0.2s; color:var(--text-muted);">&#x25BC;</span>
+        </div>
+        <div id="account-info-detail" style="display:none; padding:0.8rem; background:var(--bg-secondary); border-radius:0 0 8px 8px; border:1px solid var(--border); border-top:none;">
+          <div style="display:flex; justify-content:space-between; padding:0.25rem 0; border-bottom:1px solid var(--border); font-size:0.85rem;">
+            <span style="color:var(--text-muted);">用户名</span>
+            <strong id="account-detail-username">-</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:0.25rem 0; border-bottom:1px solid var(--border); font-size:0.85rem;">
+            <span style="color:var(--text-muted);">昵称</span>
+            <strong id="account-detail-nickname">-</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:0.25rem 0; border-bottom:1px solid var(--border); font-size:0.85rem;">
+            <span style="color:var(--text-muted);">已学单词</span>
+            <strong id="account-detail-learned">-</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:0.25rem 0; font-size:0.85rem;">
+            <span style="color:var(--text-muted);">数据同步</span>
+            <strong style="color:var(--accent);">已开启</strong>
+          </div>
+          <button class="btn btn-danger btn-sm" style="width:100%; margin-top:0.6rem;" onclick="handleLogout()">退出登录</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 每批单词数 -->
-    <div class="setting-group">
+    <div class="setting-group" style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
       <div class="setting-label">每批学习数量</div>
       <div class="setting-desc">每次学习新单词的数量</div>
       <div class="setting-control">
@@ -152,6 +198,18 @@
           <option value="full">完整音节选词（逐个音节选择）</option>
           <option value="manual">手动拼写（看音标释义输入单词）</option>
         </select>
+      </div>
+    </div>
+
+    <!-- 自动播放音频开关 -->
+    <div class="setting-group">
+      <div class="setting-label">自动播放音频</div>
+      <div class="setting-desc">学习和拼写时自动播放单词发音</div>
+      <div class="setting-control flex-between">
+        <label class="toggle-switch">
+          <input type="checkbox" id="setting-auto-play-audio" onchange="updateAutoPlayAudio(this.checked)" checked>
+          <span class="toggle-slider"></span>
+        </label>
       </div>
     </div>
 
@@ -187,16 +245,6 @@
           <input type="checkbox" id="setting-learn-phrases" onchange="updateLearnPhrases(this.checked)">
           <span class="toggle-slider"></span>
         </label>
-      </div>
-    </div>
-
-    <!-- 账号管理 -->
-    <div class="setting-group" style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-      <div class="setting-label">账号管理</div>
-      <div class="setting-desc" id="account-status-desc">未登录，学习进度仅保存在本地</div>
-      <div class="flex gap-1" style="margin-top: 0.5rem;" id="account-actions">
-        <button class="btn btn-primary btn-sm" onclick="showAuthModal('login')">登录</button>
-        <button class="btn btn-secondary btn-sm" onclick="showAuthModal('register')">注册</button>
       </div>
     </div>
 
