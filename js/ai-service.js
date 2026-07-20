@@ -65,7 +65,8 @@ class AIService {
       '4. 难度适合中国高中生，词汇量控制在3500以内\n' +
       '5. 在返回的sentence字段中，用**双星号**将目标单词加粗标记\n' +
       '6. 同时提供中文翻译（翻译也要保持这种贱贱的语气）\n' +
-      '格式要求（严格JSON，不要加markdown标记）：{"sentence": "英文例句（目标单词用**加粗**）", "translation": "中文翻译"}';
+      '7. 必须标注本句使用的语法点（简明扼要，如"定语从句(who引导)"、"非谓语动词(done作状语)"等）\n' +
+      '格式要求（严格JSON，不要加markdown标记）：{"sentence": "英文例句（目标单词用**加粗**）", "translation": "中文翻译", "grammar_points": ["语法点1", "语法点2"]}';
 
     /**
      * 改错挑战的系统提示词
@@ -247,6 +248,7 @@ class AIService {
         sentence: result.sentence,
         translation: result.translation || '',
         humor_type: result.humor_type || '',
+        grammar_points: Array.isArray(result.grammar_points) ? result.grammar_points : [],
       };
     } catch (e) {
       console.error('[AIService] 生成风格化例句失败:', e);

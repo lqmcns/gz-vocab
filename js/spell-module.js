@@ -1382,7 +1382,9 @@ const SpellModule = {
     } else {
       // 两次拼错：显示正确答案，等待用户点击"下一个"按钮
       // 在操作按钮区显示"下一个"按钮，替换原来的操作按钮
-      const wordActions = document.querySelector('.word-actions');
+      // 限定在目标 section 内查找，避免抓到其他隐藏 section 的元素
+      const section = document.getElementById(this._targetSection);
+      const wordActions = section ? section.querySelector('.word-actions') : document.querySelector('.word-actions');
       if (wordActions) {
         wordActions.innerHTML = `
           <button class="btn btn-primary" onclick="SpellModule.nextWord()">

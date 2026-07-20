@@ -749,11 +749,11 @@ select:focus {
   letter-spacing: -0.02em;
 }
 
-/* 音节分割：每个音节之间加淡下划线 */
+/* 音节分割：每个音节下方加淡虚线下划线 */
 .word-syllable {
   display: inline-block;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 1px;
+  border-bottom: 1px dashed rgba(128, 128, 128, 0.3);
+  padding-bottom: 2px;
   margin: 0 1px;
 }
 

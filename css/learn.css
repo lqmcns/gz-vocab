@@ -145,6 +145,26 @@
   margin-bottom: 0.5rem;
 }
 
+/* 语法点标注 */
+.word-detail .example-grammar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.word-detail .grammar-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(123, 77, 199, 0.1);
+  color: var(--accent);
+  border: 1px solid rgba(123, 77, 199, 0.2);
+  font-style: normal;
+  white-space: nowrap;
+}
+
 /* ---------- 操作按钮区域 ---------- */
 .word-actions {
   display: flex;

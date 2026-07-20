@@ -1480,7 +1480,7 @@ async function loadAIExampleForLearn(word) {
 
   // 2. 检查 IndexedDB 持久化缓存（跨会话保留）
   try {
-    if (window.cacheStorage) {
+    if (typeof cacheStorage !== 'undefined') {
       const cached = await cacheStorage.getCachedExample(word.word);
       if (cached) {
         flow.aiExamples[word.id] = cached;
@@ -1512,7 +1512,7 @@ async function regenerateExample(wordId) {
 
   // 也清除 IndexedDB 缓存
   try {
-    if (window.cacheStorage) {
+    if (typeof cacheStorage !== 'undefined') {
       await cacheStorage.clearCacheEntry(word.word);
     }
   } catch (e) {
@@ -1568,15 +1568,51 @@ function renderLearnExample(example, word) {
         const regex = new RegExp(`(${word.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
         sentenceHtml = sentenceHtml.replace(regex, '<strong style="color: var(--accent);">$1</strong>');
       }
+
+      // 如果当前单词是短语（含空格/省略号/斜杠），给例句中的短语加下划线
+      const isPhrase = /\s|\.\.\.|\/|，/.test(word.word);
+      if (isPhrase) {
+        // 构建短语的正则模式（处理省略号和斜杠形式）
+        let phrasePattern = word.word;
+        if (phrasePattern.includes('...')) {
+          // "calm...down" → 匹配 "calm ... down" 或 "calm xxx down"
+          const parts = phrasePattern.split('...');
+          phrasePattern = parts[0] + '\\s+\\w*\\s*' + parts.slice(1).join('\\s*');
+        } else if (phrasePattern.includes('/')) {
+          // "get/be tired of" → 匹配 "get tired of" 或 "be tired of"
+          const slashParts = phrasePattern.split('/');
+          const basePart = slashParts[1].trim(); // " tired of"
+          phrasePattern = '(?:' + slashParts[0].trim() + '|' + slashParts[1].trim() + ')' + basePart;
+        }
+        try {
+          const phraseRegex = new RegExp('(' + phrasePattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace('\\\\s', '\\s') + ')', 'gi');
+          // 只在尚未被 <strong> 包裹的部分加下划线
+          sentenceHtml = sentenceHtml.replace(phraseRegex, function(match) {
+            return '<span style="border-bottom: 1px dashed var(--accent);">' + match + '</span>';
+          });
+        } catch (e) {
+          // 正则构建失败，忽略
+        }
+      }
     }
 
     // 同时清理翻译中的 ** 标记
     let translationHtml = example.translation || '';
     translationHtml = translationHtml.replace(/\*\*(.+?)\*\*/g, '$1');
 
+    // 构建语法点标注 HTML
+    let grammarHtml = '';
+    if (example.grammar_points && Array.isArray(example.grammar_points) && example.grammar_points.length > 0) {
+      const pointsHtml = example.grammar_points.map(p =>
+        `<span class="grammar-tag">${p}</span>`
+      ).join('');
+      grammarHtml = `<div class="example-grammar">${pointsHtml}</div>`;
+    }
+
     area.innerHTML = `
       <div class="example-sentence">${Icon.learn} ${sentenceHtml}</div>
       <div class="example-translation">${translationHtml}</div>
+      ${grammarHtml}
       <button class="btn btn-ghost btn-sm" onclick="regenerateExample(${word.id})" style="margin-top: 0.5rem; font-size: 0.8rem;">
         ${Icon.refresh} 换个例句
       </button>
@@ -1768,19 +1804,23 @@ function startLearnSpell() {
   flow.phase = 'spell';
   flow.round = (flow.round || 0) + 1;
 
-  // 拼写队列：当前批次 + 上批错词（去重）
-  const spellQueue = [...flow.currentBatch];
-  for (const w of flow.carriedWrongWords) {
-    if (!spellQueue.find(s => s.word === w.word)) {
-      spellQueue.push(w);
+  // 判断是否为重拼轮次（使用显式标志，避免依赖 carriedWrongWords 的状态）
+  const isRespell = !!flow.isRespellRound;
+
+  let spellQueue;
+  if (isRespell) {
+    // 重拼轮次：拼写队列就是当前批次（已经是错词集合）
+    spellQueue = [...flow.currentBatch];
+  } else {
+    // 正常轮次：当前批次 + 上批错词（去重）
+    spellQueue = [...flow.currentBatch];
+    for (const w of flow.carriedWrongWords) {
+      if (!spellQueue.find(s => s.word === w.word)) {
+        spellQueue.push(w);
+      }
     }
   }
   flow.spellQueue = spellQueue;
-
-  // 判断是否为重拼轮次（没有新批次，只拼错词）
-  const isRespell = flow.carriedWrongWords.length > 0 && flow.currentBatch.every(w =>
-    flow.carriedWrongWords.some(r => r.word === w.word)
-  );
 
   const settings = settingsStorage.getSettings();
   const mode = settings.spellMode || 'partial';
@@ -1845,6 +1885,7 @@ function onLearnSpellComplete(result) {
   if (hasNextBatch) {
     // 进入下一批学习，所有错词带入下批拼写
     flow.carriedWrongWords = allWrong;
+    flow.isRespellRound = false;  // 正常轮次
     flow.batchIndex++;
     flow.currentBatch = flow.batches[flow.batchIndex];
     flow.studyIndex = 0;
@@ -1859,9 +1900,10 @@ function onLearnSpellComplete(result) {
   } else {
     // 没有下一批了
     if (allWrong.length > 0) {
-      // 还有错词，继续拼写
+      // 还有错词，进入重拼轮次
       flow.carriedWrongWords = [];
       flow.currentBatch = allWrong;
+      flow.isRespellRound = true;  // 标记为重拼轮次
       flow.phase = 'spell';
       showToast(`还有 ${allWrong.length} 个单词需要再拼一次`, 'info');
       setTimeout(() => startLearnSpell(), 800);
