@@ -508,6 +508,107 @@ class AIService {
   }
 
   /**
+   * 生成单词简短解释（查词界面用）
+   * 当查询的单词不在本地词库时，调用 AI 给出简短解释
+   * 结果会缓存到 IndexedDB（explanations store）
+   *
+   * @param {string} word - 要解释的单词
+   * @returns {Promise<{explanation: string, phonetic: string, pos: string, translation: string} | null>}
+   */
+  async explainWord(word) {
+    if (!word) {
+      console.warn('[AIService] explainWord: 单词不能为空');
+      return null;
+    }
+
+    const trimmedWord = word.trim();
+
+    // 1. 先查 IndexedDB 缓存
+    try {
+      if (typeof cacheStorage !== 'undefined') {
+        const cached = await cacheStorage.getCachedExplanation(trimmedWord);
+        if (cached && cached.explanation) {
+          console.log('[AIService] 命中解释缓存:', trimmedWord);
+          return cached;
+        }
+      } else if (window.CacheStorage) {
+        const cs = new CacheStorage();
+        const cached = await cs.getCachedExplanation(trimmedWord);
+        if (cached && cached.explanation) {
+          console.log('[AIService] 命中解释缓存:', trimmedWord);
+          return cached;
+        }
+      }
+    } catch (e) {
+      console.warn('[AIService] 读取解释缓存失败:', e);
+    }
+
+    // 2. 检查 AI 服务是否可用
+    if (!this.isConfigured()) {
+      console.warn('[AIService] AI 服务未配置，无法生成解释');
+      showToast('AI 服务不可用，无法生成解释', 'error');
+      return null;
+    }
+
+    // 3. 构建提示词
+    const EXPLAIN_PROMPT =
+      '你是一个专业的英语词典助手。请对用户给出的英文单词或短语提供一个简短解释。\n' +
+      '要求：\n' +
+      '1. 返回严格 JSON，不要加 markdown 标记\n' +
+      '2. 字段说明：\n' +
+      '   - phonetic: 音标（IPA格式，如 "/əˈbændən/"），如果不确定可留空字符串\n' +
+      '   - pos: 词性缩写（如 "v.", "n.", "adj."，多个用 / 分隔），如果不确定可留空\n' +
+      '   - translation: 简短的中文释义（10-30字内，核心含义即可）\n' +
+      '   - explanation: 用中文对该词做简短解释（60-120字内，包括含义、常见用法、易混点等）\n' +
+      '3. 如果用户输入的不是有效英文单词或短语，返回 {"explanation": "无法识别该词，请检查拼写", "phonetic": "", "pos": "", "translation": ""}\n' +
+      '格式：{"phonetic": "...", "pos": "...", "translation": "...", "explanation": "..."}';
+
+    const userMessage = `单词: ${trimmedWord}`;
+
+    try {
+      const messages = [
+        { role: 'system', content: EXPLAIN_PROMPT },
+        { role: 'user', content: userMessage },
+      ];
+
+      const responseText = await this._callWorker(messages, 0.3, 400);
+      if (!responseText) {
+        throw new Error('AI 返回了空响应');
+      }
+
+      const result = parseAIResponse(responseText);
+      if (!result || !result.explanation) {
+        throw new Error('AI 返回的格式不正确');
+      }
+
+      const data = {
+        explanation: result.explanation || '',
+        phonetic: result.phonetic || '',
+        pos: result.pos || '',
+        translation: result.translation || '',
+      };
+
+      // 4. 缓存结果
+      try {
+        if (typeof cacheStorage !== 'undefined') {
+          await cacheStorage.cacheExplanation(trimmedWord, data);
+        } else if (window.CacheStorage) {
+          const cs = new CacheStorage();
+          await cs.cacheExplanation(trimmedWord, data);
+        }
+      } catch (e) {
+        console.warn('[AIService] 解释缓存写入失败:', e);
+      }
+
+      return data;
+    } catch (e) {
+      console.error('[AIService] 生成单词解释失败:', e);
+      showToast('AI 解释生成失败: ' + e.message, 'error');
+      return null;
+    }
+  }
+
+  /**
    * 检查 AI 服务是否可用
    * @returns {boolean} 是否已配置
    */

@@ -518,8 +518,9 @@ class SettingsStorage {
 class CacheStorage {
   constructor() {
     this.DB_NAME = 'vocab-cache';     // 数据库名
-    this.STORE_NAME = 'examples';     // store 名
-    this.DB_VERSION = 1;             // 数据库版本
+    this.STORE_NAME = 'examples';     // 例句 store 名
+    this.EXPLAIN_STORE = 'explanations'; // 单词解释 store 名
+    this.DB_VERSION = 2;             // 数据库版本（v2 新增 explanations store）
     this.db = null;                   // 数据库实例引用
   }
 
@@ -538,11 +539,16 @@ class CacheStorage {
 
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
-        // 创建 object store（如果不存在）
+        // 创建例句 object store（如果不存在）
         if (!db.objectStoreNames.contains(this.STORE_NAME)) {
           const store = db.createObjectStore(this.STORE_NAME, { keyPath: 'word' });
           // 创建时间索引，用于清理过期缓存
           store.createIndex('cachedAt', 'cachedAt', { unique: false });
+        }
+        // v2: 创建单词解释 object store
+        if (!db.objectStoreNames.contains(this.EXPLAIN_STORE)) {
+          const explainStore = db.createObjectStore(this.EXPLAIN_STORE, { keyPath: 'word' });
+          explainStore.createIndex('cachedAt', 'cachedAt', { unique: false });
         }
       };
 
@@ -664,9 +670,9 @@ class CacheStorage {
 
       const db = await this._openDB();
       return new Promise((resolve, reject) => {
-        const tx = db.transaction(this.STORE_NAME, 'readwrite');
-        const store = tx.objectStore(this.STORE_NAME);
-        store.clear();
+        const tx = db.transaction([this.STORE_NAME, this.EXPLAIN_STORE], 'readwrite');
+        tx.objectStore(this.STORE_NAME).clear();
+        tx.objectStore(this.EXPLAIN_STORE).clear();
         tx.oncomplete = () => {
           console.log('[CacheStorage] 缓存已清除');
           resolve();
@@ -679,6 +685,90 @@ class CacheStorage {
     } catch (e) {
       console.error('[CacheStorage] 清除缓存异常:', e);
       // 不抛出错误，让调用方正常处理
+    }
+  }
+
+  /* ===========================
+     单词解释缓存（explanations store）
+     用于查词界面 AI 简短解释的缓存
+     =========================== */
+
+  /**
+   * 缓存单词解释数据
+   * @param {string} word - 单词
+   * @param {object} data - 缓存数据 { explanation, phonetic, pos, translation }
+   * @returns {Promise<void>}
+   */
+  async cacheExplanation(word, data) {
+    try {
+      const db = await this._openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(this.EXPLAIN_STORE, 'readwrite');
+        const store = tx.objectStore(this.EXPLAIN_STORE);
+        const record = {
+          word: word,
+          data: data,
+          cachedAt: Date.now(),
+        };
+        store.put(record);
+        tx.oncomplete = () => resolve();
+        tx.onerror = (event) => {
+          console.error('[CacheStorage] 解释缓存写入失败:', event.target.error);
+          reject(event.target.error);
+        };
+      });
+    } catch (e) {
+      console.error('[CacheStorage] 缓存解释异常:', e);
+    }
+  }
+
+  /**
+   * 获取缓存的单词解释数据
+   * @param {string} word - 单词
+   * @returns {Promise<object|null>}
+   */
+  async getCachedExplanation(word) {
+    try {
+      const db = await this._openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(this.EXPLAIN_STORE, 'readonly');
+        const store = tx.objectStore(this.EXPLAIN_STORE);
+        const request = store.get(word);
+        request.onsuccess = () => {
+          const result = request.result;
+          resolve(result ? result.data : null);
+        };
+        request.onerror = (event) => {
+          console.error('[CacheStorage] 解释缓存读取失败:', event.target.error);
+          reject(event.target.error);
+        };
+      });
+    } catch (e) {
+      console.error('[CacheStorage] 获取解释缓存异常:', e);
+      return null;
+    }
+  }
+
+  /**
+   * 清除指定单词的解释缓存
+   * @param {string} word - 单词
+   * @returns {Promise<void>}
+   */
+  async clearExplanationEntry(word) {
+    try {
+      const db = await this._openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(this.EXPLAIN_STORE, 'readwrite');
+        const store = tx.objectStore(this.EXPLAIN_STORE);
+        store.delete(word);
+        tx.oncomplete = () => resolve();
+        tx.onerror = (event) => {
+          console.error('[CacheStorage] 删除解释缓存失败:', event.target.error);
+          reject(event.target.error);
+        };
+      });
+    } catch (e) {
+      console.error('[CacheStorage] 删除解释缓存异常:', e);
     }
   }
 }

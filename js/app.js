@@ -1063,7 +1063,7 @@ function renderLearnStart() {
 
         <div id="learn-textbook-select" style="display: none; margin-top: 1rem;">
           <div class="flex gap-1" style="flex-wrap: wrap;">
-            <select id="learn-book-select" style="flex: 1; min-width: 120px;">
+            <select id="learn-book-select" onchange="onLearnBookChange(this.value)" style="flex: 1; min-width: 120px;">
               ${bookOptions || '<option value="">无教材数据</option>'}
             </select>
             <select id="learn-unit-select" style="flex: 1; min-width: 120px;">
@@ -3088,7 +3088,9 @@ function renderSearch() {
       <span class="search-icon">${Icon.search}</span>
       <input type="text" id="search-input" placeholder="输入英文单词或中文释义..."
         autocomplete="off" autofocus
-        oninput="performSearch(this.value)">
+        oninput="performSearch(this.value)"
+        onkeypress="if(event.key==='Enter') triggerSearch()">
+      <button class="btn btn-primary btn-sm" id="search-btn" onclick="triggerSearch()" style="margin-left:0.5rem;">搜索</button>
     </div>
 
     <!-- 查词历史（可折叠） -->
@@ -3252,15 +3254,23 @@ function performSearch(query) {
   }
 
   if (results.length === 0) {
+    // 记录最近一次查询，供 triggerSearch 使用
+    AppState._lastSearchQuery = trimmed;
     resultsContainer.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">${Icon.search}</div>
         <div class="empty-text">没有找到匹配的单词</div>
-        <div class="empty-sub">试试其他关键词</div>
+        <div class="empty-sub">词库中无此词，点击下方按钮用 AI 解释</div>
+        <button class="btn btn-primary btn-sm" style="margin-top:0.75rem;" onclick="explainUnknownWord('${trimmed.replace(/'/g, "\\'")}')">
+          ${Icon.learn || '🔍'} 用 AI 解释 "${trimmed}"
+        </button>
       </div>
     `;
     return;
   }
+
+  // 记录最近一次查询
+  AppState._lastSearchQuery = trimmed;
 
   resultsContainer.innerHTML = `
     <p class="text-muted mb-1" style="font-size: 0.85rem;">找到 ${results.length} 个结果 · 点击单词进入 AI 语法助手</p>
@@ -3288,6 +3298,142 @@ function performSearch(query) {
       `;
     }).join('')}
   `;
+}
+
+/**
+ * 触发搜索（点击搜索按钮或回车时调用）
+ * 如果词库中有结果，performSearch 已处理；
+ * 如果无结果，自动调用 AI 解释。
+ */
+function triggerSearch() {
+  const input = document.getElementById('search-input');
+  if (!input) return;
+  const query = input.value.trim();
+  if (!query) return;
+
+  // 先执行普通搜索
+  performSearch(query);
+
+  // 检查是否无结果（通过 _lastSearchQuery 和结果区内容判断）
+  const resultsContainer = document.getElementById('search-results');
+  if (!resultsContainer) return;
+
+  // 如果结果区包含"没有找到匹配的单词"，则自动触发 AI 解释
+  if (resultsContainer.innerHTML.includes('没有找到匹配的单词')) {
+    explainUnknownWord(query);
+  }
+}
+
+/**
+ * 用 AI 解释未知单词（词库中找不到的词）
+ * @param {string} word - 要解释的单词
+ */
+async function explainUnknownWord(word) {
+  const trimmed = (word || '').trim();
+  if (!trimmed) return;
+
+  const resultsContainer = document.getElementById('search-results');
+  if (!resultsContainer) return;
+
+  // 检查 AI 服务
+  if (!window.aiService || !aiService.isConfigured()) {
+    resultsContainer.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">${Icon.search}</div>
+        <div class="empty-text">AI 服务不可用</div>
+        <div class="empty-sub">无法为 "${trimmed}" 生成解释</div>
+      </div>
+    `;
+    return;
+  }
+
+  // 显示加载状态
+  resultsContainer.innerHTML = `
+    <div class="card" style="text-align:center; padding:1.5rem;">
+      <div style="color:var(--text-muted); font-size:0.9rem;">
+        ${Icon.settings || '⏳'} 正在用 AI 解释 "${trimmed}"...
+      </div>
+    </div>
+  `;
+
+  try {
+    const result = await aiService.explainWord(trimmed);
+    if (!result || !result.explanation) {
+      resultsContainer.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">${Icon.search}</div>
+          <div class="empty-text">AI 未能生成解释</div>
+          <div class="empty-sub">请稍后重试或检查网络</div>
+        </div>
+      `;
+      return;
+    }
+
+    // 记录到查词历史
+    searchHistoryStorage.addRecord(trimmed);
+    renderSearchHistory();
+
+    // 渲染 AI 解释结果
+    const phoneticHtml = result.phonetic ? `<span class="search-result-phonetic">${result.phonetic}</span>` : '';
+    const posHtml = result.pos ? `<span class="word-pos">${result.pos}</span>` : '';
+    const translationHtml = result.translation ? `<div class="search-result-translation">${result.translation}</div>` : '';
+
+    resultsContainer.innerHTML = `
+      <p class="text-muted mb-1" style="font-size: 0.85rem;">AI 词典解释 · 非教材词汇</p>
+      <div class="card mb-1 search-result-item" id="ai-explain-card">
+        <div class="search-result-main">
+          <span class="search-result-word">${trimmed}</span>
+          ${phoneticHtml}
+          ${posHtml}
+          <button class="phonetic-btn" onclick="speakWord('${trimmed.replace(/'/g, "\\'")}')" title="播放发音" style="width:28px;height:28px; margin-left:auto;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3z"/></svg>
+          </button>
+        </div>
+        ${translationHtml}
+        <div style="margin-top:0.5rem; padding:0.6rem 0.75rem; background:var(--accent-light); border-radius:var(--radius-sm); font-size:0.88rem; line-height:1.7; color:var(--text-secondary);">
+          ${result.explanation}
+        </div>
+        <div style="margin-top:0.5rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <button class="btn btn-ghost btn-sm" onclick="explainUnknownWord('${trimmed.replace(/'/g, "\\'")}')">
+            ${Icon.refresh || '🔄'} 重新解释
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="clearAiExplainCache('${trimmed.replace(/'/g, "\\'")}')">
+            清除缓存
+          </button>
+        </div>
+      </div>
+    `;
+  } catch (e) {
+    console.error('[Search] AI 解释失败:', e);
+    resultsContainer.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">${Icon.search}</div>
+        <div class="empty-text">AI 解释失败</div>
+        <div class="empty-sub">${e.message || '网络错误'}，请稍后重试</div>
+      </div>
+    `;
+  }
+}
+
+/**
+ * 清除指定单词的 AI 解释缓存并重新解释
+ * @param {string} word - 单词
+ */
+async function clearAiExplainCache(word) {
+  const trimmed = (word || '').trim();
+  if (!trimmed) return;
+  try {
+    if (typeof cacheStorage !== 'undefined') {
+      await cacheStorage.clearExplanationEntry(trimmed);
+    } else if (window.CacheStorage) {
+      const cs = new CacheStorage();
+      await cs.clearExplanationEntry(trimmed);
+    }
+    showToast('已清除缓存，重新生成中...', 'info');
+  } catch (e) {
+    console.warn('[Search] 清除解释缓存失败:', e);
+  }
+  explainUnknownWord(trimmed);
 }
 
 /* ===========================
@@ -5250,6 +5396,9 @@ window.filterLearnedWords = filterLearnedWords;
 // 快速查词页面
 window.renderSearch = renderSearch;
 window.performSearch = performSearch;
+window.triggerSearch = triggerSearch;
+window.explainUnknownWord = explainUnknownWord;
+window.clearAiExplainCache = clearAiExplainCache;
 // 教材服务
 window.textbookService = textbookService;
 
