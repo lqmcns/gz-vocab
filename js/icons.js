@@ -26,8 +26,8 @@ const Icon = {
   speak: "<svg width=\"20\" height=\"20\" viewBox=\"0 0 16 16\" fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M3.375 4.04039C3.3753 1.95198 5.696 0.700174 7.44141 1.84703L13.4668 5.80602C15.0445 6.8429 15.0444 9.15678 13.4668 10.1937L7.44141 14.1527C5.69594 15.2997 3.37511 14.048 3.375 11.9593V4.04039ZM4.625 11.9593C4.62511 13.0532 5.84065 13.7091 6.75488 13.1088L12.7803 9.14879C13.6064 8.60562 13.6064 7.39408 12.7803 6.85094L6.75488 2.89196C5.84069 2.29122 4.6253 2.94655 4.625 4.04039V11.9593Z\" fill=\"currentColor\"/></svg>",
   // 正确（勾选）
   check: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>",
-  // 星号/重点（描边星）
-  star: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\"/></svg>",
+  // 星号/重点（用简单 * 字符替代 SVG）
+  star: "<span style=\"color: var(--warning); font-weight: 700;\">*</span>",
   // 提示（问号）
   hint: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"/><path d=\"M12 17h.01\"/></svg>",
   // 奖杯/完成（实心星）

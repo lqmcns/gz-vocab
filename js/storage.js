@@ -66,8 +66,9 @@ class ProgressStorage {
     if (typeof AuthService === 'undefined' || !AuthService.isLoggedIn()) return;
     
     try {
-      const progress = this.getAllProgress();
-      const stats = this.getProgressStats();
+      // 修复：先执行自动状态转换，再取快照，保证 learned 和 stats 口径一致
+      const stats = this.getProgressStats(); // 内部会调 _autoUpdateReviewStatus
+      const progress = this.getAllProgress(); // 转换后再取快照
       // 读取当前设置（合并到云端）
       const settings = (typeof settingsStorage !== 'undefined')
         ? settingsStorage.getSettings()
@@ -337,6 +338,9 @@ class ProgressStorage {
         // 如果超过间隔时间，转为待复习
         if (hoursPassed >= intervalHours) {
           progress[wordId].status = 'review';
+          // 保留原始 updatedAt（标记为进入复习状态的时间点），
+          // 但新增 lastReviewAt 记录这次状态转换的时间，用于云端合并时判断
+          progress[wordId].lastReviewAt = now;
           changed = true;
         }
       }
@@ -344,6 +348,8 @@ class ProgressStorage {
       if (changed) {
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(progress));
         console.log('[ProgressStorage] 已自动更新部分单词为待复习状态');
+        // 触发云端同步，确保复习状态上云
+        this._scheduleCloudSync();
       }
     } catch (e) {
       console.error('[ProgressStorage] 自动更新复习状态失败:', e);
@@ -390,6 +396,8 @@ class ProgressStorage {
         reviewCount: reviewCount,
       };
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(progress));
+      // 触发云端同步（修复：原来缺失，导致 mastered 状态无法上云）
+      this._scheduleCloudSync();
     } catch (e) {
       console.error('[ProgressStorage] 标记已掌握失败:', e);
     }

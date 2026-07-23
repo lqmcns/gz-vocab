@@ -78,6 +78,12 @@ async function init() {
       }
     }
 
+    // 7. 在设置面板中注入"重新查看教程"按钮
+    injectTutorialButton();
+
+    // 8. 检查是否需要启动首次登录引导教程（showLoading(false) 之前）
+    checkTutorialOnStart();
+
     console.log('[App] 初始化完成');
   } catch (error) {
     console.error('[App] 初始化失败:', error);
@@ -86,6 +92,28 @@ async function init() {
     showLoading(false);
   }
 }
+
+/* ===========================
+   页面关闭时同步数据到云端
+   =========================== */
+// 修复：监听页面隐藏/关闭，确保学习进度不丢失
+window.addEventListener('pagehide', () => {
+  if (typeof progressStorage !== 'undefined' && progressStorage._syncToCloud) {
+    if (typeof AuthService !== 'undefined' && AuthService.isLoggedIn()) {
+      // 使用同步请求确保数据发出（navigator.sendBeacon 无法处理异步）
+      progressStorage._syncToCloud().catch(() => {});
+    }
+  }
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    if (typeof progressStorage !== 'undefined' && progressStorage._syncToCloud) {
+      if (typeof AuthService !== 'undefined' && AuthService.isLoggedIn()) {
+        progressStorage._syncToCloud().catch(() => {});
+      }
+    }
+  }
+});
 
 /* ===========================
    路由管理
@@ -1923,6 +1951,11 @@ function completeLearnBatch() {
 
   // 学习完成，清除保存的进度
   clearLearnFlowProgress(flow.words);
+
+  // 修复：学习完成时主动同步到云端，防止"学完即关页面"导致数据丢失
+  if (typeof progressStorage !== 'undefined' && progressStorage._scheduleCloudSync) {
+    progressStorage._scheduleCloudSync();
+  }
 
   flow.phase = 'complete';
   renderLearnComplete();
@@ -5492,17 +5525,27 @@ async function handleAuthSubmit(event) {
       }
       showToast('注册成功，欢迎加入！', 'success');
     } else {
+      // 记录登录前的用户名，判断是否是同一账号
+      const prevUsername = (typeof AuthService !== 'undefined' && AuthService.getUsername) ? AuthService.getUsername() : null;
       await AuthService.login(username, password);
-      // 切换账号：先清除旧账号的本地数据，再从云端加载新账号数据
       if (typeof progressStorage !== 'undefined') {
-        if (progressStorage.clearAllLocalLearnData) {
-          progressStorage.clearAllLocalLearnData();
-        }
-        showToast('登录成功，正在同步数据...', 'success');
-        if (progressStorage.loadFromCloud) {
-          const loaded = await progressStorage.loadFromCloud();
-          if (loaded) {
-            showToast('云端数据同步完成', 'success');
+        if (prevUsername !== username) {
+          // 切换账号：先清除旧账号的本地数据，再从云端加载新账号数据
+          if (progressStorage.clearAllLocalLearnData) {
+            progressStorage.clearAllLocalLearnData();
+          }
+          showToast('登录成功，正在同步数据...', 'success');
+          if (progressStorage.loadFromCloud) {
+            const loaded = await progressStorage.loadFromCloud();
+            if (loaded) {
+              showToast('云端数据同步完成', 'success');
+            }
+          }
+        } else {
+          // 同一账号重新登录：不清空本地，执行双向同步（先上传本地，再合并云端）
+          showToast('登录成功，正在同步数据...', 'success');
+          if (progressStorage.manualSync) {
+            await progressStorage.manualSync();
           }
         }
       } else {
@@ -5621,3 +5664,500 @@ window.toggleAccountInfo = toggleAccountInfo;
 window.updateAutoPlayAudio = updateAutoPlayAudio;
 window.updateEbbinghausReview = updateEbbinghausReview;
 window.manualSyncData = manualSyncData;
+
+/* ==========================================================
+   首次登录引导教程（纯 vanilla JS，无框架依赖）
+   ========================================================== */
+
+/**
+ * 教程步骤配置
+ * @property {string|null} selector   - 要高亮的元素 CSS 选择器（null 表示居中显示无高亮）
+ * @property {string}       title      - 步骤标题
+ * @property {string}       description - 说明文字
+ * @property {string}       placement  - 气泡相对于高亮元素的位置：top/bottom/left/right/center
+ */
+const TUTORIAL_STEPS = [
+  {
+    selector: '.navbar-nav a[href="#/home"]',
+    title: '欢迎页',
+    description: '欢迎使用镐冢词汇！让我们用 1 分钟了解所有功能。',
+    placement: 'bottom',
+  },
+  {
+    selector: '.navbar-nav a[href="#/learn"]',
+    title: '学习页',
+    description: "点击「学习」开始背单词。支持随机生词、按教材选择、已学复习三种模式。",
+    placement: 'bottom',
+  },
+  {
+    selector: '.navbar-nav a[href="#/spell"]',
+    title: '拼写页',
+    description: '学完单词后，来这里巩固拼写。支持音节选择和手动输入两种模式。',
+    placement: 'bottom',
+  },
+  {
+    selector: '.navbar-nav a[href="#/wordlist"]',
+    title: '单词表',
+    description: '浏览所有教材单词，带 * 标记的是高频核心词。',
+    placement: 'bottom',
+  },
+  {
+    selector: '.navbar-nav a[href="#/learned"]',
+    title: '已学',
+    description: '查看你的学习进度，包括已掌握、学习中、待复习的单词。',
+    placement: 'bottom',
+  },
+  {
+    selector: '.navbar-nav a[href="#/search"]',
+    title: '查词',
+    description: '输入任意单词快速查询，词库中找不到的词 AI 会自动解释。',
+    placement: 'bottom',
+  },
+  {
+    selector: '.navbar-nav a[href="#/challenge"]',
+    title: '挑战',
+    description: 'AI 出题的改错挑战，从冠词到复杂句式，分四个难度等级。',
+    placement: 'bottom',
+  },
+  {
+    selector: '.navbar-nav a[onclick*="toggleSettings"]',
+    title: '设置',
+    description: '调整批次大小、拼写模式、艾宾浩斯复习曲线等参数。',
+    placement: 'bottom',
+  },
+  {
+    selector: null,
+    title: '教程结束',
+    description: '教程结束！随时可以在设置中重新查看教程。',
+    placement: 'center',
+  },
+];
+
+// 教程运行时状态
+let _tutorialCurrentStep = 0;
+let _tutorialOverlay = null;
+let _tutorialHighlight = null;
+let _tutorialTooltip = null;
+let _tutorialScrollHandler = null;
+let _tutorialResizeHandler = null;
+let _tutorialKeydownHandler = null;
+let _tutorialRafId = null;
+
+/**
+ * 首次登录时检查是否需要启动教程
+ * 通过 localStorage key "vocab-tutorial-done" 判断（值为 '1' 表示已完成）
+ */
+function checkTutorialOnStart() {
+  try {
+    const done = localStorage.getItem('vocab-tutorial-done');
+    if (done !== '1') {
+      // 延迟启动，等首页完全渲染
+      setTimeout(() => startTutorial(), 500);
+    }
+  } catch (e) {
+    console.warn('[Tutorial] 检查启动教程失败:', e);
+  }
+}
+
+/**
+ * 启动教程：创建遮罩、高亮、气泡元素，显示第一步
+ */
+function startTutorial() {
+  // 若已存在教程元素，先清理（不标记完成）
+  endTutorial(false);
+
+  _tutorialCurrentStep = 0;
+
+  // 关闭可能打开的设置面板
+  if (typeof toggleSettings === 'function') {
+    toggleSettings(false);
+  }
+
+  // 创建遮罩层（透明，仅用于阻止页面其他交互）
+  _tutorialOverlay = document.createElement('div');
+  _tutorialOverlay.className = 'tutorial-overlay';
+  // 阻止所有点击事件穿透到下方页面
+  _tutorialOverlay.addEventListener('click', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  _tutorialOverlay.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+  });
+
+  // 创建高亮窗口元素
+  _tutorialHighlight = document.createElement('div');
+  _tutorialHighlight.className = 'tutorial-highlight';
+  _tutorialHighlight.style.display = 'none';
+
+  // 创建提示气泡元素
+  _tutorialTooltip = document.createElement('div');
+  _tutorialTooltip.className = 'tutorial-tooltip';
+  _tutorialTooltip.style.display = 'none';
+
+  document.body.appendChild(_tutorialOverlay);
+  document.body.appendChild(_tutorialHighlight);
+  document.body.appendChild(_tutorialTooltip);
+
+  document.body.classList.add('tutorial-active');
+
+  // 绑定 scroll / resize 事件：窗口变化时重新定位高亮区域和气泡
+  _tutorialScrollHandler = function () {
+    _scheduleTutorialReposition();
+  };
+  _tutorialResizeHandler = function () {
+    _scheduleTutorialReposition();
+  };
+  // capture: true 以捕获所有滚动容器（包括内部可滚动区域）
+  window.addEventListener('scroll', _tutorialScrollHandler, true);
+  window.addEventListener('resize', _tutorialResizeHandler);
+
+  // 键盘快捷键：Esc 结束教程，左/右箭头切换步骤
+  _tutorialKeydownHandler = function (e) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      endTutorial(true);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      nextTutorialStep();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      prevTutorialStep();
+    }
+  };
+  document.addEventListener('keydown', _tutorialKeydownHandler);
+
+  // 显示第一步
+  showTutorialStep(0);
+}
+
+/**
+ * 显示指定步骤
+ * @param {number} index - 步骤索引（0 起）
+ */
+function showTutorialStep(index) {
+  if (index < 0 || index >= TUTORIAL_STEPS.length) {
+    endTutorial(true);
+    return;
+  }
+
+  var step = TUTORIAL_STEPS[index];
+
+  // 如果该步有 selector 但找不到元素，自动跳到下一步
+  if (step.selector && !document.querySelector(step.selector)) {
+    console.warn('[Tutorial] 步骤 ' + (index + 1) + ' 的 selector 找不到元素，自动跳过');
+    showTutorialStep(index + 1);
+    return;
+  }
+
+  _tutorialCurrentStep = index;
+
+  // 渲染气泡内容
+  _renderTutorialStepContent(index);
+
+  // 等待 DOM 更新后定位元素
+  requestAnimationFrame(function () {
+    positionTutorialElements();
+  });
+}
+
+/**
+ * 渲染气泡内部内容（标题、说明、步骤指示器、按钮）
+ * @param {number} index - 步骤索引
+ */
+function _renderTutorialStepContent(index) {
+  const step = TUTORIAL_STEPS[index];
+  const isLast = index === TUTORIAL_STEPS.length - 1;
+  const isFirst = index === 0;
+
+  // 生成步骤指示点
+  var dotsHtml = '';
+  for (var i = 0; i < TUTORIAL_STEPS.length; i++) {
+    var cls = 'tutorial-progress-dot';
+    if (i === index) cls += ' active';
+    else if (i < index) cls += ' done';
+    dotsHtml += '<span class="' + cls + '"></span>';
+  }
+
+  // 按钮区
+  var nextBtnHtml = isLast
+    ? '<button class="tutorial-btn tutorial-btn-primary" onclick="endTutorial(true)">结束教程</button>'
+    : '<button class="tutorial-btn tutorial-btn-primary" onclick="nextTutorialStep()">下一步</button>';
+
+  _tutorialTooltip.innerHTML =
+    '<div class="tutorial-progress">' +
+      '第 ' + (index + 1) + ' / ' + TUTORIAL_STEPS.length + ' 步' +
+      '<span class="tutorial-progress-dots">' + dotsHtml + '</span>' +
+    '</div>' +
+    '<div class="tutorial-title">' + step.title + '</div>' +
+    '<div class="tutorial-description">' + step.description + '</div>' +
+    '<div class="tutorial-actions">' +
+      '<button class="tutorial-btn tutorial-btn-skip" onclick="endTutorial(true)">跳过教程</button>' +
+      '<div class="tutorial-actions-right">' +
+        '<button class="tutorial-btn" onclick="prevTutorialStep()" ' + (isFirst ? 'disabled' : '') + '>上一步</button>' +
+        nextBtnHtml +
+      '</div>' +
+    '</div>';
+}
+
+/**
+ * 定位教程元素（高亮窗口 + 气泡）
+ * 使用 getBoundingClientRect() 获取目标元素在视口中的位置
+ */
+function positionTutorialElements() {
+  if (!_tutorialHighlight || !_tutorialTooltip) return;
+
+  var step = TUTORIAL_STEPS[_tutorialCurrentStep];
+  if (!step) return;
+
+  var targetEl = step.selector ? document.querySelector(step.selector) : null;
+
+  if (targetEl) {
+    var rect = targetEl.getBoundingClientRect();
+    var padding = 6;
+
+    // 定位高亮窗口（透明矩形 + 巨大 box-shadow 充当暗色蒙版）
+    _tutorialHighlight.style.display = 'block';
+    _tutorialHighlight.style.top = (rect.top - padding) + 'px';
+    _tutorialHighlight.style.left = (rect.left - padding) + 'px';
+    _tutorialHighlight.style.width = (rect.width + padding * 2) + 'px';
+    _tutorialHighlight.style.height = (rect.height + padding * 2) + 'px';
+
+    // 定位气泡
+    _tutorialTooltip.style.display = 'block';
+    _tutorialTooltip.setAttribute('data-placement', step.placement);
+    _positionTooltipNextTo(rect, step.placement);
+  } else {
+    // selector 为 null（结束步骤）或找不到元素：居中显示气泡，不显示高亮
+    _tutorialHighlight.style.display = 'none';
+    _tutorialTooltip.style.display = 'block';
+    _tutorialTooltip.setAttribute('data-placement', 'center');
+    _centerTooltip();
+  }
+}
+
+/**
+ * 将气泡定位到目标元素旁边
+ * @param {DOMRect} targetRect - 目标元素的视口坐标
+ * @param {string}  placement  - 期望的位置 top/bottom/left/right
+ */
+function _positionTooltipNextTo(targetRect, placement) {
+  var tooltip = _tutorialTooltip;
+  // 清除居中定位使用的 transform
+  tooltip.style.transform = 'none';
+
+  var tooltipW = tooltip.offsetWidth;
+  var tooltipH = tooltip.offsetHeight;
+  var gap = 14;
+  var viewportW = window.innerWidth;
+  var viewportH = window.innerHeight;
+  var margin = 10;
+
+  var top, left;
+
+  switch (placement) {
+    case 'top':
+      top = targetRect.top - tooltipH - gap;
+      left = targetRect.left + (targetRect.width - tooltipW) / 2;
+      break;
+    case 'left':
+      top = targetRect.top + (targetRect.height - tooltipH) / 2;
+      left = targetRect.left - tooltipW - gap;
+      break;
+    case 'right':
+      top = targetRect.top + (targetRect.height - tooltipH) / 2;
+      left = targetRect.right + gap;
+      break;
+    case 'bottom':
+    default:
+      top = targetRect.bottom + gap;
+      left = targetRect.left + (targetRect.width - tooltipW) / 2;
+      break;
+  }
+
+  // 水平边界修正
+  if (left < margin) left = margin;
+  if (left + tooltipW > viewportW - margin) {
+    left = viewportW - tooltipW - margin;
+  }
+
+  // 垂直边界修正：期望在下方但空间不够 -> 改为上方
+  if (placement === 'bottom' && top + tooltipH > viewportH - margin) {
+    var altTop = targetRect.top - tooltipH - gap;
+    if (altTop >= margin) {
+      top = altTop;
+      tooltip.setAttribute('data-placement', 'top');
+    } else {
+      // 上下都不够，贴底部显示
+      top = viewportH - tooltipH - margin;
+    }
+  }
+  // 期望在上方但空间不够 -> 改为下方
+  if (placement === 'top' && top < margin) {
+    var altBot = targetRect.bottom + gap;
+    if (altBot + tooltipH <= viewportH - margin) {
+      top = altBot;
+      tooltip.setAttribute('data-placement', 'bottom');
+    } else {
+      top = margin;
+    }
+  }
+
+  tooltip.style.top = top + 'px';
+  tooltip.style.left = left + 'px';
+}
+
+/**
+ * 居中显示气泡（用于无高亮目标的步骤）
+ */
+function _centerTooltip() {
+  var tooltip = _tutorialTooltip;
+  tooltip.style.top = '50%';
+  tooltip.style.left = '50%';
+  tooltip.style.transform = 'translate(-50%, -50%)';
+}
+
+/**
+ * 节流重新定位（用 requestAnimationFrame 避免频繁触发）
+ */
+function _scheduleTutorialReposition() {
+  if (_tutorialRafId) return;
+  _tutorialRafId = requestAnimationFrame(function () {
+    _tutorialRafId = null;
+    positionTutorialElements();
+  });
+}
+
+/**
+ * 下一步
+ */
+function nextTutorialStep() {
+  var next = _tutorialCurrentStep + 1;
+  // 如果下一步的 selector 找不到元素，自动跳过
+  while (next < TUTORIAL_STEPS.length) {
+    var step = TUTORIAL_STEPS[next];
+    if (!step.selector || document.querySelector(step.selector)) {
+      showTutorialStep(next);
+      return;
+    }
+    next++;
+  }
+  // 所有剩余步骤都找不到元素，直接结束
+  endTutorial(true);
+}
+
+/**
+ * 上一步
+ */
+function prevTutorialStep() {
+  var prev = _tutorialCurrentStep - 1;
+  while (prev >= 0) {
+    var step = TUTORIAL_STEPS[prev];
+    if (!step.selector || document.querySelector(step.selector)) {
+      showTutorialStep(prev);
+      return;
+    }
+    prev--;
+  }
+  // 已到第一步
+  if (_tutorialCurrentStep > 0) {
+    showTutorialStep(0);
+  }
+}
+
+/**
+ * 结束教程
+ * @param {boolean} markDone - 是否在 localStorage 标记教程已完成
+ */
+function endTutorial(markDone) {
+  // 移除事件监听
+  if (_tutorialScrollHandler) {
+    window.removeEventListener('scroll', _tutorialScrollHandler, true);
+    _tutorialScrollHandler = null;
+  }
+  if (_tutorialResizeHandler) {
+    window.removeEventListener('resize', _tutorialResizeHandler);
+    _tutorialResizeHandler = null;
+  }
+  if (_tutorialKeydownHandler) {
+    document.removeEventListener('keydown', _tutorialKeydownHandler);
+    _tutorialKeydownHandler = null;
+  }
+  if (_tutorialRafId) {
+    cancelAnimationFrame(_tutorialRafId);
+    _tutorialRafId = null;
+  }
+
+  // 移除 DOM 元素
+  if (_tutorialOverlay) {
+    _tutorialOverlay.remove();
+    _tutorialOverlay = null;
+  }
+  if (_tutorialHighlight) {
+    _tutorialHighlight.remove();
+    _tutorialHighlight = null;
+  }
+  if (_tutorialTooltip) {
+    _tutorialTooltip.remove();
+    _tutorialTooltip = null;
+  }
+
+  document.body.classList.remove('tutorial-active');
+
+  // 标记完成
+  if (markDone) {
+    try {
+      localStorage.setItem('vocab-tutorial-done', '1');
+    } catch (e) {
+      console.warn('[Tutorial] 标记教程完成失败:', e);
+    }
+  }
+}
+
+/**
+ * 重新查看教程（从设置面板按钮调用）
+ */
+function restartTutorial() {
+  // 关闭设置面板
+  if (typeof toggleSettings === 'function') {
+    toggleSettings(false);
+  }
+  // 延迟启动，等设置面板关闭动画完成
+  setTimeout(function () {
+    startTutorial();
+  }, 350);
+}
+
+/**
+ * 在设置面板中注入"重新查看教程"按钮
+ * 设置面板的 HTML 在 index.html 中是静态的，这里通过 JS 动态追加一个设置组
+ */
+function injectTutorialButton() {
+  var panel = document.getElementById('settings-panel');
+  if (!panel) return;
+  // 避免重复注入
+  if (document.getElementById('tutorial-restart-group')) return;
+
+  var group = document.createElement('div');
+  group.id = 'tutorial-restart-group';
+  group.className = 'setting-group';
+  group.style.cssText =
+    'margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;';
+  group.innerHTML =
+    '<div class="setting-label">新手引导</div>' +
+    '<div class="setting-desc">重新查看功能介绍教程，了解所有功能的用法</div>' +
+    '<div style="margin-top: 0.5rem;">' +
+      '<button class="btn btn-secondary btn-sm" onclick="restartTutorial()">重新查看教程</button>' +
+    '</div>';
+
+  panel.appendChild(group);
+}
+
+// 挂载到 window 供 onclick 内联事件调用
+window.startTutorial = startTutorial;
+window.endTutorial = endTutorial;
+window.restartTutorial = restartTutorial;
+window.nextTutorialStep = nextTutorialStep;
+window.prevTutorialStep = prevTutorialStep;
+window.injectTutorialButton = injectTutorialButton;
+window.checkTutorialOnStart = checkTutorialOnStart;

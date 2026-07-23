@@ -1557,6 +1557,274 @@ select:focus {
   color: var(--accent);
 }
 
+/* ==========================================================
+   首次登录引导教程
+   ========================================================== */
+
+/* 教程进行中禁止 body 滚动 */
+body.tutorial-active {
+  overflow: hidden;
+}
+
+/* 教程遮罩层（透明，仅用于捕获点击、阻止页面其他交互） */
+.tutorial-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  background: transparent;
+  cursor: default;
+}
+
+/* 教程高亮窗口（box-shadow 遮罩法：巨大 spread 的阴影充当暗色蒙版） */
+.tutorial-highlight {
+  position: fixed;
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 10001;
+  transition:
+    top 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* 高亮元素的脉冲边框（紫色发光） */
+.tutorial-highlight::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border: 2px solid var(--accent);
+  border-radius: 10px;
+  pointer-events: none;
+  animation: tutorial-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes tutorial-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(108, 92, 231, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(108, 92, 231, 0);
+  }
+}
+
+/* 教程提示气泡 */
+.tutorial-tooltip {
+  position: fixed;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+  width: 320px;
+  max-width: calc(100vw - 2rem);
+  z-index: 10002;
+  animation: tutorial-fade-in 0.25s ease;
+}
+
+@keyframes tutorial-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* 气泡箭头（用 ::before + z-index:-1 实现指向高亮元素的效果） */
+.tutorial-tooltip::before {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: var(--bg-primary);
+  transform: rotate(45deg);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* 气泡在目标下方 -> 箭头在气泡顶部 */
+.tutorial-tooltip[data-placement="bottom"]::before {
+  top: -7px;
+  left: 50%;
+  margin-left: -7px;
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+}
+
+/* 气泡在目标上方 -> 箭头在气泡底部 */
+.tutorial-tooltip[data-placement="top"]::before {
+  bottom: -7px;
+  left: 50%;
+  margin-left: -7px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+/* 气泡在目标右侧 -> 箭头在气泡左侧 */
+.tutorial-tooltip[data-placement="right"]::before {
+  left: -7px;
+  top: 50%;
+  margin-top: -7px;
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+/* 气泡在目标左侧 -> 箭头在气泡右侧 */
+.tutorial-tooltip[data-placement="left"]::before {
+  right: -7px;
+  top: 50%;
+  margin-top: -7px;
+  border-right: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+}
+
+/* 居中显示（无高亮目标）时不显示箭头 */
+.tutorial-tooltip[data-placement="center"]::before {
+  display: none;
+}
+
+/* 气泡标题 */
+.tutorial-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+  line-height: 1.4;
+}
+
+/* 气泡正文 */
+.tutorial-description {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 0.9rem;
+}
+
+/* 步骤指示器 */
+.tutorial-progress {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tutorial-progress-dots {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 0.3rem;
+}
+
+.tutorial-progress-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.tutorial-progress-dot.active {
+  background: var(--accent);
+}
+
+.tutorial-progress-dot.done {
+  background: var(--accent);
+  opacity: 0.45;
+}
+
+/* 按钮容器 */
+.tutorial-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tutorial-actions-right {
+  display: flex;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+/* 教程按钮 */
+.tutorial-btn {
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  transition: background 0.2s, color 0.2s, border-color 0.2s, opacity 0.2s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.tutorial-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* 主按钮：紫色实心 */
+.tutorial-btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.tutorial-btn-primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: #ffffff;
+}
+
+/* 跳过按钮：透明文字按钮 */
+.tutorial-btn-skip {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  padding: 0.4rem 0.5rem;
+}
+
+.tutorial-btn-skip:hover {
+  color: var(--text-secondary);
+  background: transparent;
+}
+
+.tutorial-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* 移动端适配 */
+@media (max-width: 480px) {
+  .tutorial-tooltip {
+    width: calc(100vw - 2rem);
+    padding: 0.85rem 0.95rem;
+  }
+  .tutorial-title {
+    font-size: 0.95rem;
+  }
+  .tutorial-description {
+    font-size: 0.82rem;
+  }
+  .tutorial-btn {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.78rem;
+  }
+  .tutorial-btn-skip {
+    padding: 0.35rem 0.4rem;
+  }
+}
+
 .text-danger {
   color: var(--danger);
 }
