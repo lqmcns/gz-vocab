@@ -78,11 +78,11 @@ async function init() {
       }
     }
 
-    // 7. 在设置面板中注入"重新查看教程"按钮
-    injectTutorialButton();
-
     // 8. 检查是否需要启动首次登录引导教程（showLoading(false) 之前）
     checkTutorialOnStart();
+
+    // 9. 初始化悬浮导航按钮
+    initFloatingNav();
 
     console.log('[App] 初始化完成');
   } catch (error) {
@@ -337,6 +337,9 @@ function navigate(section) {
     }
   });
 
+  // 更新悬浮按钮面板高亮
+  updateFabActiveState(section);
+
   // 根据目标 section 执行渲染
   switch (section) {
     case 'home':
@@ -389,6 +392,20 @@ function restoreSettings() {
     document.documentElement.setAttribute('data-theme', 'dark');
   } else {
     document.documentElement.removeAttribute('data-theme');
+  }
+
+  // 应用悬浮导航按钮（手机默认开，电脑默认关，用户明确设置过则用设置值）
+  const isMobile = _isMobile();
+  const floatingNavSetting = settings.floatingNav;
+  const floatingNavEnabled = floatingNavSetting !== undefined ? floatingNavSetting : isMobile;
+  if (floatingNavEnabled) {
+    document.body.classList.add('floating-nav-enabled');
+  } else {
+    document.body.classList.remove('floating-nav-enabled');
+  }
+  // 同步更新 FAB 可见性（确保 body class 和 FAB display 一致）
+  if (typeof updateFabVisibility === 'function') {
+    updateFabVisibility();
   }
 }
 
@@ -456,6 +473,12 @@ function syncSettingsUI() {
   if (autoPlayToggle) autoPlayToggle.checked = settings.autoPlayAudio !== false; // 默认开启
   const ebbinghausToggle = document.getElementById('setting-ebbinghaus-review');
   if (ebbinghausToggle) ebbinghausToggle.checked = settings.ebbinghausReview === true;
+  const floatingNavToggle = document.getElementById('setting-floating-nav');
+  if (floatingNavToggle) {
+    // 手机默认开，电脑默认关，用户明确设置过则用设置值
+    const isMobile = _isMobile();
+    floatingNavToggle.checked = settings.floatingNav !== undefined ? settings.floatingNav : isMobile;
+  }
 }
 
 /**
@@ -5653,6 +5676,363 @@ function updateEbbinghausReview(checked) {
   showToast(checked ? '已开启艾宾浩斯复习曲线，已掌握的单词将按间隔自动转入待复习' : '已关闭艾宾浩斯复习曲线', 'success');
 }
 
+/* ==========================================================
+   悬浮导航按钮 (FAB) 模块
+   ========================================================== */
+
+// 悬浮面板导航项配置
+const FAB_NAV_ITEMS = [
+  { section: 'home',      icon: 'home',      label: '首页' },
+  { section: 'learn',     icon: 'learn',     label: '学习' },
+  { section: 'spell',     icon: 'spell',     label: '拼写' },
+  { section: 'wordlist',  icon: 'wordlist',  label: '单词表' },
+  { section: 'learned',   icon: 'learned',   label: '已学' },
+  { section: 'search',    icon: 'search',    label: '查词' },
+  { section: 'challenge', icon: 'challenge', label: '挑战' },
+];
+
+// 悬浮按钮位置存储键
+const FAB_POSITION_KEY = 'fab-nav-position';
+
+// 拖拽状态
+let _fabDragState = {
+  isDragging: false,
+  startX: 0,
+  startY: 0,
+  origX: 0,
+  origY: 0,
+  moved: false,
+  pointerId: null,
+};
+
+/**
+ * 初始化悬浮导航按钮
+ * 创建面板内容、绑定事件、恢复位置
+ */
+function initFloatingNav() {
+  const btn = document.getElementById('fab-nav-btn');
+  const panel = document.getElementById('fab-nav-panel');
+  const overlay = document.getElementById('fab-nav-overlay');
+  if (!btn || !panel || !overlay) return;
+
+  // 1. 创建面板内容
+  panel.innerHTML = FAB_NAV_ITEMS.map((item) => `
+    <div class="fab-nav-item" data-section="${item.section}" onclick="navigateFromFab('${item.section}')">
+      ${Icon[item.icon] || ''}
+      <span class="fab-nav-item-label">${item.label}</span>
+    </div>
+  `).join('') + `
+    <div class="fab-nav-item" data-section="settings" onclick="toggleSettings(true); closeFabPanel();">
+      ${Icon.settings || ''}
+      <span class="fab-nav-item-label">设置</span>
+    </div>
+  `;
+
+  // 2. 恢复保存的位置
+  _restoreFabPosition(btn);
+
+  // 3. 绑定按钮点击/拖拽事件（使用 pointer events 统一处理触摸和鼠标）
+  btn.addEventListener('pointerdown', _onFabPointerDown);
+
+  // 4. 绑定遮罩点击关闭
+  overlay.addEventListener('click', () => closeFabPanel());
+
+  // 5. 初始可见性
+  updateFabVisibility();
+
+  // 6. 初始高亮
+  updateFabActiveState(AppState.currentSection);
+
+  // 7. 窗口大小变化时确保按钮在可视区域内
+  window.addEventListener('resize', () => {
+    _clampFabPosition(btn);
+    if (panel.classList.contains('open')) {
+      _positionFabPanel(btn, panel);
+    }
+  });
+}
+
+/**
+ * 恢复悬浮按钮保存的位置
+ */
+function _restoreFabPosition(btn) {
+  try {
+    const saved = localStorage.getItem(FAB_POSITION_KEY);
+    if (saved) {
+      const pos = JSON.parse(saved);
+      btn.style.left = pos.x + 'px';
+      btn.style.top = pos.y + 'px';
+      btn.style.right = 'auto';
+      btn.style.bottom = 'auto';
+      _clampFabPosition(btn);
+    } else {
+      // 默认位置：右下角
+      _setDefaultFabPosition(btn);
+    }
+  } catch (e) {
+    _setDefaultFabPosition(btn);
+  }
+}
+
+/**
+ * 设置默认位置（右下角）
+ */
+function _setDefaultFabPosition(btn) {
+  btn.style.right = '20px';
+  btn.style.bottom = '20px';
+  btn.style.left = 'auto';
+  btn.style.top = 'auto';
+}
+
+/**
+ * 确保按钮在可视区域内
+ */
+function _clampFabPosition(btn) {
+  const rect = btn.getBoundingClientRect();
+  const margin = 8;
+  const maxX = window.innerWidth - rect.width - margin;
+  const maxY = window.innerHeight - rect.height - margin;
+
+  // 如果使用 left/top 定位
+  if (btn.style.left !== 'auto' && btn.style.left !== '') {
+    let x = parseFloat(btn.style.left);
+    let y = parseFloat(btn.style.top);
+    x = Math.max(margin, Math.min(x, maxX));
+    y = Math.max(margin, Math.min(y, maxY));
+    btn.style.left = x + 'px';
+    btn.style.top = y + 'px';
+  }
+}
+
+/**
+ * Pointer down 事件 - 记录起始位置，不修改任何样式
+ * 只有真正拖拽超过阈值时才切换到 left/top 定位
+ */
+function _onFabPointerDown(e) {
+  const btn = document.getElementById('fab-nav-btn');
+  if (!btn) return;
+
+  // 仅响应主按键
+  if (e.button !== undefined && e.button !== 0) return;
+
+  e.preventDefault();
+
+  _fabDragState.isDragging = true;
+  _fabDragState.moved = false;
+  _fabDragState.startX = e.clientX;
+  _fabDragState.startY = e.clientY;
+  _fabDragState.pointerId = e.pointerId;
+
+  // 记录按钮当前 rect（但不修改样式，避免点击时跳动）
+  const rect = btn.getBoundingClientRect();
+  _fabDragState.origX = rect.left;
+  _fabDragState.origY = rect.top;
+
+  btn.setPointerCapture(e.pointerId);
+  btn.addEventListener('pointermove', _onFabPointerMove);
+  btn.addEventListener('pointerup', _onFabPointerUp);
+  btn.addEventListener('pointercancel', _onFabPointerUp);
+}
+
+/**
+ * Pointer move 事件 - 拖拽中
+ * 超过阈值时才切换到 left/top 定位并开始拖拽
+ */
+function _onFabPointerMove(e) {
+  if (!_fabDragState.isDragging) return;
+
+  const dx = e.clientX - _fabDragState.startX;
+  const dy = e.clientY - _fabDragState.startY;
+
+  // 移动超过阈值才标记为拖拽
+  if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+    const btn = document.getElementById('fab-nav-btn');
+    if (!btn) return;
+
+    // 首次进入拖拽：切换到 left/top 定位
+    if (!_fabDragState.moved) {
+      _fabDragState.moved = true;
+      btn.classList.add('dragging');
+      btn.style.left = _fabDragState.origX + 'px';
+      btn.style.top = _fabDragState.origY + 'px';
+      btn.style.right = 'auto';
+      btn.style.bottom = 'auto';
+    }
+
+    let newX = _fabDragState.origX + dx;
+    let newY = _fabDragState.origY + dy;
+
+    // 限制在可视区域内
+    const margin = 8;
+    const rect = btn.getBoundingClientRect();
+    newX = Math.max(margin, Math.min(newX, window.innerWidth - rect.width - margin));
+    newY = Math.max(margin, Math.min(newY, window.innerHeight - rect.height - margin));
+
+    btn.style.left = newX + 'px';
+    btn.style.top = newY + 'px';
+  }
+}
+
+/**
+ * Pointer up 事件 - 结束拖拽或触发点击
+ */
+function _onFabPointerUp(e) {
+  const btn = document.getElementById('fab-nav-btn');
+  if (!btn) return;
+
+  if (_fabDragState.pointerId !== null) {
+    try { btn.releasePointerCapture(_fabDragState.pointerId); } catch (_) {}
+  }
+  btn.removeEventListener('pointermove', _onFabPointerMove);
+  btn.removeEventListener('pointerup', _onFabPointerUp);
+  btn.removeEventListener('pointercancel', _onFabPointerUp);
+
+  btn.classList.remove('dragging');
+  _fabDragState.isDragging = false;
+  _fabDragState.pointerId = null;
+
+  if (_fabDragState.moved) {
+    // 拖拽结束，保存位置
+    try {
+      const rect = btn.getBoundingClientRect();
+      localStorage.setItem(FAB_POSITION_KEY, JSON.stringify({
+        x: Math.round(rect.left),
+        y: Math.round(rect.top),
+      }));
+    } catch (e) { /* 忽略存储错误 */ }
+    // 拖拽后关闭面板（如果之前是展开的）
+    closeFabPanel();
+  } else {
+    // 点击：切换面板
+    toggleFabPanel();
+  }
+}
+
+/**
+ * 定位面板（相对于按钮位置）
+ */
+function _positionFabPanel(btn, panel) {
+  const btnRect = btn.getBoundingClientRect();
+  const panelRect = panel.getBoundingClientRect();
+  const margin = 8;
+
+  // 默认：面板在按钮上方
+  let panelLeft = btnRect.left + btnRect.width / 2 - panelRect.width / 2;
+  let panelTop = btnRect.top - panelRect.height - margin;
+
+  // 如果上方空间不够，放下方
+  if (panelTop < margin) {
+    panelTop = btnRect.bottom + margin;
+  }
+
+  // 水平边界限制
+  panelLeft = Math.max(margin, Math.min(panelLeft, window.innerWidth - panelRect.width - margin));
+
+  // 垂直边界限制
+  panelTop = Math.max(margin, Math.min(panelTop, window.innerHeight - panelRect.height - margin));
+
+  panel.style.left = panelLeft + 'px';
+  panel.style.top = panelTop + 'px';
+  panel.style.right = 'auto';
+  panel.style.bottom = 'auto';
+
+  // 根据面板相对按钮的位置设置 transform-origin
+  if (panelTop < btnRect.top) {
+    panel.style.transformOrigin = 'bottom center';
+  } else {
+    panel.style.transformOrigin = 'top center';
+  }
+}
+
+/**
+ * 切换面板展开/折叠
+ */
+function toggleFabPanel() {
+  const btn = document.getElementById('fab-nav-btn');
+  const panel = document.getElementById('fab-nav-panel');
+  const overlay = document.getElementById('fab-nav-overlay');
+  if (!btn || !panel || !overlay) return;
+
+  const isOpen = panel.classList.contains('open');
+
+  if (isOpen) {
+    closeFabPanel();
+  } else {
+    // 先显示面板以获取尺寸，再定位
+    panel.classList.add('open');
+    btn.classList.add('expanded');
+    overlay.classList.add('open');
+    // 延迟一帧让面板渲染后再定位
+    requestAnimationFrame(() => {
+      _positionFabPanel(btn, panel);
+    });
+  }
+}
+
+/**
+ * 关闭面板
+ */
+function closeFabPanel() {
+  const btn = document.getElementById('fab-nav-btn');
+  const panel = document.getElementById('fab-nav-panel');
+  const overlay = document.getElementById('fab-nav-overlay');
+  if (btn) btn.classList.remove('expanded');
+  if (panel) panel.classList.remove('open');
+  if (overlay) overlay.classList.remove('open');
+}
+
+/**
+ * 从悬浮面板导航
+ */
+function navigateFromFab(section) {
+  closeFabPanel();
+  navigate(section);
+}
+
+/**
+ * 更新悬浮按钮可见性
+ * 手机默认开启，电脑默认关闭；用户明确设置过则用设置值
+ */
+function updateFabVisibility() {
+  const btn = document.getElementById('fab-nav-btn');
+  if (!btn) return;
+  const settings = settingsStorage.getSettings();
+  const isMobile = _isMobile();
+  const floatingNavEnabled = settings.floatingNav !== undefined ? settings.floatingNav : isMobile;
+  if (floatingNavEnabled) {
+    btn.classList.remove('hidden');
+    document.body.classList.add('floating-nav-enabled');
+  } else {
+    btn.classList.add('hidden');
+    document.body.classList.remove('floating-nav-enabled');
+    closeFabPanel();
+  }
+}
+
+/**
+ * 更新悬浮导航设置
+ */
+function updateFloatingNav(checked) {
+  settingsStorage.saveSetting('floatingNav', checked);
+  updateFabVisibility();
+  showToast(checked ? '已开启悬浮导航按钮' : '已关闭悬浮导航按钮', 'success');
+}
+
+/**
+ * 更新面板中当前页面的高亮
+ */
+function updateFabActiveState(section) {
+  const panel = document.getElementById('fab-nav-panel');
+  if (!panel) return;
+  panel.querySelectorAll('.fab-nav-item').forEach((item) => {
+    if (item.dataset.section === section) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+}
+
 // 暴露到全局
 window.showAuthModal = showAuthModal;
 window.hideAuthModal = hideAuthModal;
@@ -5663,6 +6043,10 @@ window.updateAccountUI = updateAccountUI;
 window.toggleAccountInfo = toggleAccountInfo;
 window.updateAutoPlayAudio = updateAutoPlayAudio;
 window.updateEbbinghausReview = updateEbbinghausReview;
+window.updateFloatingNav = updateFloatingNav;
+window.navigateFromFab = navigateFromFab;
+window.closeFabPanel = closeFabPanel;
+window.toggleFabPanel = toggleFabPanel;
 window.manualSyncData = manualSyncData;
 
 /* ==========================================================
@@ -5676,59 +6060,85 @@ window.manualSyncData = manualSyncData;
  * @property {string}       description - 说明文字
  * @property {string}       placement  - 气泡相对于高亮元素的位置：top/bottom/left/right/center
  */
+/**
+ * 教程步骤配置
+ * @property {string|null} section    - 需要导航到的页面（null 表示不导航）
+ * @property {string|null} selector   - 要高亮的元素 CSS 选择器（null 表示居中显示无高亮）
+ * @property {boolean}     openSettings - 是否需要打开设置面板
+ * @property {string}      title      - 步骤标题
+ * @property {string}      description - 说明文字
+ * @property {string}      placement  - 气泡相对于高亮元素的位置：top/bottom/left/right/center
+ */
 const TUTORIAL_STEPS = [
   {
-    selector: '.navbar-nav a[href="#/home"]',
-    title: '欢迎页',
-    description: '欢迎使用镐冢词汇！让我们用 1 分钟了解所有功能。',
+    section: null,
+    selector: null,
+    title: '欢迎使用镐冢词汇',
+    description: '让我们用 1 分钟，带你了解所有核心功能。<br>点击「下一步」开始导览。',
+    placement: 'center',
+  },
+  {
+    section: 'home',
+    selector: null, // 动态设置：手机端高亮 FAB，电脑端高亮导航栏
+    title: '功能导航',
+    description: '通过顶部的导航栏（或手机端的悬浮按钮）可以在各功能页面间切换。',
     placement: 'bottom',
   },
   {
-    selector: '.navbar-nav a[href="#/learn"]',
-    title: '学习页',
-    description: "点击「学习」开始背单词。支持随机生词、按教材选择、已学复习三种模式。",
+    section: 'learn',
+    selector: '.learn-setup, #learn .card',
+    title: '学习新词',
+    description: '选择学习范围（随机/教材/复习），设置每批数量后点击「开始学习」。学完会自动进入拼写巩固。',
     placement: 'bottom',
   },
   {
-    selector: '.navbar-nav a[href="#/spell"]',
-    title: '拼写页',
-    description: '学完单词后，来这里巩固拼写。支持音节选择和手动输入两种模式。',
+    section: 'spell',
+    selector: '.spell-setup, #spell .card',
+    title: '拼写训练',
+    description: '学完单词后来这里巩固拼写。支持部分挖空、完整音节、手动输入三种模式。',
     placement: 'bottom',
   },
   {
-    selector: '.navbar-nav a[href="#/wordlist"]',
+    section: 'wordlist',
+    selector: '#wordlist .card, #wordlist h2',
     title: '单词表',
-    description: '浏览所有教材单词，带 * 标记的是高频核心词。',
+    description: '浏览所有教材单词，带 <span style="color:var(--warning);font-weight:700;">*</span> 标记的是高频核心词。',
     placement: 'bottom',
   },
   {
-    selector: '.navbar-nav a[href="#/learned"]',
-    title: '已学',
-    description: '查看你的学习进度，包括已掌握、学习中、待复习的单词。',
+    section: 'learned',
+    selector: '#learned .card, #learned h2',
+    title: '已学单词',
+    description: '查看你的学习进度，包括已掌握、学习中、待复习的单词，一目了然。',
     placement: 'bottom',
   },
   {
-    selector: '.navbar-nav a[href="#/search"]',
-    title: '查词',
-    description: '输入任意单词快速查询，词库中找不到的词 AI 会自动解释。',
+    section: 'search',
+    selector: '#search-input, .search-box',
+    title: '快速查词',
+    description: '输入任意单词查询释义和例句。词库中找不到的词，AI 会自动给出解释。',
     placement: 'bottom',
   },
   {
-    selector: '.navbar-nav a[href="#/challenge"]',
-    title: '挑战',
-    description: 'AI 出题的改错挑战，从冠词到复杂句式，分四个难度等级。',
+    section: 'challenge',
+    selector: '#challenge .card, #challenge h2',
+    title: '改错挑战',
+    description: 'AI 出题的英语改错挑战，从冠词到复杂句式，分四个难度等级，检验你的语感。',
     placement: 'bottom',
   },
   {
-    selector: '.navbar-nav a[onclick*="toggleSettings"]',
-    title: '设置',
-    description: '调整批次大小、拼写模式、艾宾浩斯复习曲线等参数。',
-    placement: 'bottom',
+    section: null,
+    openSettings: true,
+    selector: '.settings-panel',
+    title: '设置面板',
+    description: '在这里调整每批学习数量、拼写模式、语音速度、艾宾浩斯复习曲线等参数。',
+    placement: 'left',
   },
   {
+    section: 'home',
     selector: null,
     title: '教程结束',
-    description: '教程结束！随时可以在设置中重新查看教程。',
+    description: '一切就绪！开始你的背单词之旅吧。<br>随时可以在设置中重新查看本教程。',
     placement: 'center',
   },
 ];
@@ -5763,8 +6173,8 @@ function checkTutorialOnStart() {
  * 启动教程：创建遮罩、高亮、气泡元素，显示第一步
  */
 function startTutorial() {
-  // 若已存在教程元素，先清理（不标记完成）
-  endTutorial(false);
+  // 若已存在教程元素，先清理（不标记完成，不导航）
+  endTutorial(null);
 
   _tutorialCurrentStep = 0;
 
@@ -5833,6 +6243,7 @@ function startTutorial() {
 
 /**
  * 显示指定步骤
+ * 会先导航到对应页面，等待渲染后再定位高亮和气泡
  * @param {number} index - 步骤索引（0 起）
  */
 function showTutorialStep(index) {
@@ -5842,23 +6253,124 @@ function showTutorialStep(index) {
   }
 
   var step = TUTORIAL_STEPS[index];
-
-  // 如果该步有 selector 但找不到元素，自动跳到下一步
-  if (step.selector && !document.querySelector(step.selector)) {
-    console.warn('[Tutorial] 步骤 ' + (index + 1) + ' 的 selector 找不到元素，自动跳过');
-    showTutorialStep(index + 1);
-    return;
-  }
-
   _tutorialCurrentStep = index;
 
-  // 渲染气泡内容
+  // 渲染气泡内容（先渲染，等导航后再定位）
   _renderTutorialStepContent(index);
+
+  // 隐藏高亮和气泡，等导航完成后再显示
+  if (_tutorialHighlight) _tutorialHighlight.style.display = 'none';
+  if (_tutorialTooltip) _tutorialTooltip.style.display = 'none';
+
+  // 关闭设置面板（除非本步需要打开）
+  if (!step.openSettings && typeof toggleSettings === 'function') {
+    toggleSettings(false);
+  }
+
+  // 如果需要导航到某个页面
+  var needNavigate = step.section && step.section !== AppState.currentSection;
+  if (needNavigate) {
+    // 导航到目标页面（教程中导航不会触发退出确认，因为没有活跃的学习/拼写会话）
+    navigate(step.section);
+  }
+
+  // 如果需要打开设置面板
+  if (step.openSettings) {
+    setTimeout(function () {
+      toggleSettings(true);
+      _afterTutorialNavigate(index);
+    }, 300);
+  } else {
+    // 等待页面渲染后定位
+    var delay = needNavigate ? 350 : 50;
+    setTimeout(function () {
+      _afterTutorialNavigate(index);
+    }, delay);
+  }
+}
+
+/**
+ * 教程导航完成后的定位逻辑
+ * 处理动态选择器（如 FAB vs 导航栏）和元素查找
+ */
+function _afterTutorialNavigate(index) {
+  var step = TUTORIAL_STEPS[index];
+
+  // 特殊处理：第 2 步（功能导航）—— 手机端高亮 FAB，电脑端高亮导航栏
+  var effectiveSelector = step.selector;
+  if (index === 1) {
+    if (_isMobile()) {
+      effectiveSelector = '#fab-nav-btn';
+    } else {
+      effectiveSelector = '.navbar-nav';
+    }
+  }
+
+  // 查找目标元素
+  var foundEl = null;
+  if (effectiveSelector) {
+    var selectors = effectiveSelector.split(',').map(function (s) { return s.trim(); });
+    for (var i = 0; i < selectors.length; i++) {
+      var el = document.querySelector(selectors[i]);
+      if (el) {
+        var rect = el.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          foundEl = el;
+          break;
+        }
+      }
+    }
+    if (!foundEl && index === 1) {
+      // 导航栏不可见时回退到 FAB
+      var fab = document.querySelector('#fab-nav-btn');
+      if (fab && !fab.classList.contains('hidden')) foundEl = fab;
+    }
+    if (!foundEl) {
+      console.warn('[Tutorial] 步骤 ' + (index + 1) + ' 的 selector 找不到可见元素，居中显示');
+    }
+  }
+
+  // 构造有效步骤
+  var effectiveStep = {
+    selector: foundEl ? null : null, // 已找到元素则不需要 selector
+    placement: step.placement,
+    _foundEl: foundEl,
+  };
 
   // 等待 DOM 更新后定位元素
   requestAnimationFrame(function () {
-    positionTutorialElements();
+    _positionTutorialForStep(effectiveStep);
   });
+}
+
+/**
+ * 根据有效步骤定位教程元素
+ */
+function _positionTutorialForStep(effectiveStep) {
+  if (!_tutorialHighlight || !_tutorialTooltip) return;
+
+  // 优先使用已找到的元素，否则用 selector 查找
+  var targetEl = effectiveStep._foundEl || (effectiveStep.selector ? document.querySelector(effectiveStep.selector) : null);
+
+  if (targetEl) {
+    var rect = targetEl.getBoundingClientRect();
+    var padding = 6;
+
+    _tutorialHighlight.style.display = 'block';
+    _tutorialHighlight.style.top = (rect.top - padding) + 'px';
+    _tutorialHighlight.style.left = (rect.left - padding) + 'px';
+    _tutorialHighlight.style.width = (rect.width + padding * 2) + 'px';
+    _tutorialHighlight.style.height = (rect.height + padding * 2) + 'px';
+
+    _tutorialTooltip.style.display = 'block';
+    _tutorialTooltip.setAttribute('data-placement', effectiveStep.placement);
+    _positionTooltipNextTo(rect, effectiveStep.placement);
+  } else {
+    _tutorialHighlight.style.display = 'none';
+    _tutorialTooltip.style.display = 'block';
+    _tutorialTooltip.setAttribute('data-placement', 'center');
+    _centerTooltip();
+  }
 }
 
 /**
@@ -5902,7 +6414,7 @@ function _renderTutorialStepContent(index) {
 
 /**
  * 定位教程元素（高亮窗口 + 气泡）
- * 使用 getBoundingClientRect() 获取目标元素在视口中的位置
+ * 用于 scroll/resize 事件触发的重新定位
  */
 function positionTutorialElements() {
   if (!_tutorialHighlight || !_tutorialTooltip) return;
@@ -5910,25 +6422,43 @@ function positionTutorialElements() {
   var step = TUTORIAL_STEPS[_tutorialCurrentStep];
   if (!step) return;
 
-  var targetEl = step.selector ? document.querySelector(step.selector) : null;
+  // 特殊处理：第 2 步（功能导航）
+  var effectiveSelector = step.selector;
+  if (_tutorialCurrentStep === 1) {
+    effectiveSelector = _isMobile() ? '#fab-nav-btn' : '.navbar-nav';
+  }
+
+  var targetEl = null;
+  if (effectiveSelector) {
+    var selectors = effectiveSelector.split(',').map(function (s) { return s.trim(); });
+    for (var i = 0; i < selectors.length; i++) {
+      targetEl = document.querySelector(selectors[i]);
+      if (targetEl) {
+        var rect = targetEl.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) break;
+        targetEl = null;
+      }
+    }
+    if (!targetEl && _tutorialCurrentStep === 1) {
+      targetEl = document.querySelector('#fab-nav-btn');
+      if (targetEl && targetEl.classList.contains('hidden')) targetEl = null;
+    }
+  }
 
   if (targetEl) {
     var rect = targetEl.getBoundingClientRect();
     var padding = 6;
 
-    // 定位高亮窗口（透明矩形 + 巨大 box-shadow 充当暗色蒙版）
     _tutorialHighlight.style.display = 'block';
     _tutorialHighlight.style.top = (rect.top - padding) + 'px';
     _tutorialHighlight.style.left = (rect.left - padding) + 'px';
     _tutorialHighlight.style.width = (rect.width + padding * 2) + 'px';
     _tutorialHighlight.style.height = (rect.height + padding * 2) + 'px';
 
-    // 定位气泡
     _tutorialTooltip.style.display = 'block';
     _tutorialTooltip.setAttribute('data-placement', step.placement);
     _positionTooltipNextTo(rect, step.placement);
   } else {
-    // selector 为 null（结束步骤）或找不到元素：居中显示气泡，不显示高亮
     _tutorialHighlight.style.display = 'none';
     _tutorialTooltip.style.display = 'block';
     _tutorialTooltip.setAttribute('data-placement', 'center');
@@ -6033,17 +6563,11 @@ function _scheduleTutorialReposition() {
  */
 function nextTutorialStep() {
   var next = _tutorialCurrentStep + 1;
-  // 如果下一步的 selector 找不到元素，自动跳过
-  while (next < TUTORIAL_STEPS.length) {
-    var step = TUTORIAL_STEPS[next];
-    if (!step.selector || document.querySelector(step.selector)) {
-      showTutorialStep(next);
-      return;
-    }
-    next++;
+  if (next < TUTORIAL_STEPS.length) {
+    showTutorialStep(next);
+  } else {
+    endTutorial(true);
   }
-  // 所有剩余步骤都找不到元素，直接结束
-  endTutorial(true);
 }
 
 /**
@@ -6051,17 +6575,8 @@ function nextTutorialStep() {
  */
 function prevTutorialStep() {
   var prev = _tutorialCurrentStep - 1;
-  while (prev >= 0) {
-    var step = TUTORIAL_STEPS[prev];
-    if (!step.selector || document.querySelector(step.selector)) {
-      showTutorialStep(prev);
-      return;
-    }
-    prev--;
-  }
-  // 已到第一步
-  if (_tutorialCurrentStep > 0) {
-    showTutorialStep(0);
+  if (prev >= 0) {
+    showTutorialStep(prev);
   }
 }
 
@@ -6112,6 +6627,14 @@ function endTutorial(markDone) {
       console.warn('[Tutorial] 标记教程完成失败:', e);
     }
   }
+
+  // 仅在标记完成（正常结束/跳过）时关闭设置面板并导航
+  if (markDone !== null) {
+    if (typeof toggleSettings === 'function') {
+      toggleSettings(false);
+    }
+    navigate('home');
+  }
 }
 
 /**
@@ -6128,36 +6651,10 @@ function restartTutorial() {
   }, 350);
 }
 
-/**
- * 在设置面板中注入"重新查看教程"按钮
- * 设置面板的 HTML 在 index.html 中是静态的，这里通过 JS 动态追加一个设置组
- */
-function injectTutorialButton() {
-  var panel = document.getElementById('settings-panel');
-  if (!panel) return;
-  // 避免重复注入
-  if (document.getElementById('tutorial-restart-group')) return;
-
-  var group = document.createElement('div');
-  group.id = 'tutorial-restart-group';
-  group.className = 'setting-group';
-  group.style.cssText =
-    'margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;';
-  group.innerHTML =
-    '<div class="setting-label">新手引导</div>' +
-    '<div class="setting-desc">重新查看功能介绍教程，了解所有功能的用法</div>' +
-    '<div style="margin-top: 0.5rem;">' +
-      '<button class="btn btn-secondary btn-sm" onclick="restartTutorial()">重新查看教程</button>' +
-    '</div>';
-
-  panel.appendChild(group);
-}
-
 // 挂载到 window 供 onclick 内联事件调用
 window.startTutorial = startTutorial;
 window.endTutorial = endTutorial;
 window.restartTutorial = restartTutorial;
 window.nextTutorialStep = nextTutorialStep;
 window.prevTutorialStep = prevTutorialStep;
-window.injectTutorialButton = injectTutorialButton;
 window.checkTutorialOnStart = checkTutorialOnStart;

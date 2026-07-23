@@ -11,11 +11,11 @@
   <title> 镐冢词汇 - 高考3500词 - 背单词</title>
 
   <!-- 全局样式 -->
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/learn.css">
-  <link rel="stylesheet" href="css/spell.css">
-  <link rel="stylesheet" href="css/challenge.css">
-  <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/style.css?v=232">
+  <link rel="stylesheet" href="css/learn.css?v=232">
+  <link rel="stylesheet" href="css/spell.css?v=232">
+  <link rel="stylesheet" href="css/challenge.css?v=232">
+  <link rel="stylesheet" href="css/pages.css?v=232">
 
   <!-- Hyphen 库 CDN（英文单词连字符断字） -->
   <script src="https://cdn.jsdelivr.net/npm/hyphen@1.14.1/hyphen.min.js"></script>
@@ -28,9 +28,6 @@
        =========================== -->
   <nav class="navbar">
     <div class="navbar-inner">
-      <!-- 品牌标识 -->
-      <div class="navbar-brand">镐冢Vocab</div>
-
       <!-- 导航链接 -->
       <ul class="navbar-nav">
         <li>
@@ -285,22 +282,53 @@
       </div>
     </div>
 
-    <!-- 清除数据 -->
-    <div class="setting-group" style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-      <div class="setting-label text-danger">数据管理</div>
-      <div class="setting-desc">
-        清除进度：删除所有学习记录，单词回到未学习状态<br>
-        清除缓存：删除AI生成的例句缓存（不影响学习进度，下次使用会重新生成）
+    <!-- 悬浮导航按钮开关 -->
+    <div class="setting-group">
+      <div class="setting-label">悬浮导航按钮</div>
+      <div class="setting-desc">开启后在右下角显示悬浮按钮，点击展开所有功能入口。手机端会隐藏顶部导航栏</div>
+      <div class="setting-control flex-between">
+        <label class="toggle-switch">
+          <input type="checkbox" id="setting-floating-nav" onchange="updateFloatingNav(this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
       </div>
-      <div class="flex gap-1" style="margin-top: 0.5rem;">
-        <button class="btn btn-danger btn-sm" onclick="confirmClearProgress()">清除进度</button>
-        <button class="btn btn-secondary btn-sm" onclick="confirmClearCache()">清除缓存</button>
+    </div>
+
+    <!-- 新手引导 -->
+    <div class="setting-group" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+      <div class="setting-label">新手引导</div>
+      <div class="setting-desc">重新查看功能介绍教程，了解所有功能的用法</div>
+      <div style="margin-top: 0.5rem;">
+        <button class="btn btn-secondary btn-sm" onclick="restartTutorial()">重新查看教程</button>
       </div>
     </div>
 
     <!-- 手动同步数据 -->
     <div class="setting-group" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-      <div class="setting-label">手动同步</div>
+      <div class="setting-label flex-between">
+        <span>手动同步</span>
+        <details style="position: relative; display: inline-block;">
+          <summary style="
+            cursor: pointer; font-size: 0.75rem; color: var(--text-muted);
+            list-style: none; user-select: none; padding: 2px 8px;
+            border: 1px solid var(--border); border-radius: 4px;
+          ">原理 &#x25BE;</summary>
+          <div style="
+            position: absolute; top: 100%; right: 0; z-index: 100;
+            min-width: 250px; max-width: 290px; padding: 0.75rem;
+            background: var(--bg-primary); border: 1px solid var(--border);
+            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            font-size: 0.8rem; line-height: 1.5; color: var(--text-secondary);
+            margin-top: 4px;
+          ">
+            <strong style="color: var(--text-primary);">双向同步机制</strong><br>
+            点击同步时，同时执行两个操作：<br>
+            &#x2460; 上传：将本地的学习进度、已学单词、学习会话、设置上传到云端<br>
+            &#x2461; 下载：从云端拉取数据，与本地数据智能合并<br>
+            <span style="color: var(--text-muted);">合并规则：以最新修改时间为准，云端和本地记录取较新的一方，不会互相覆盖丢失数据。日常学习过程中也会自动触发同步。</span>
+          </div>
+        </details>
+      </div>
       <div class="setting-desc">
         立即上传本地数据到云端并下载云端数据合并<br>
         包括：学习进度、已学单词、学习会话记录、用户设置
@@ -309,6 +337,19 @@
         <button class="btn btn-primary btn-sm" onclick="manualSyncData()" id="manual-sync-btn">
           &#x21bb; 手动同步数据
         </button>
+      </div>
+    </div>
+
+    <!-- 清除数据（移至最底部） -->
+    <div class="setting-group" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+      <div class="setting-label text-danger">数据管理</div>
+      <div class="setting-desc">
+        清除进度：删除所有学习记录，单词回到未学习状态<br>
+        清除缓存：删除AI生成的例句缓存（不影响学习进度，下次使用会重新生成）
+      </div>
+      <div class="flex gap-1" style="margin-top: 0.5rem;">
+        <button class="btn btn-danger btn-sm" onclick="confirmClearProgress()">清除进度</button>
+        <button class="btn btn-secondary btn-sm" onclick="confirmClearCache()">清除缓存</button>
       </div>
     </div>
   </aside>
@@ -355,6 +396,15 @@
 
   </main>
 
+  <!-- ===========================
+       悬浮导航按钮
+       =========================== -->
+  <div class="fab-nav-overlay" id="fab-nav-overlay"></div>
+  <div class="fab-nav-panel" id="fab-nav-panel"></div>
+  <div class="fab-nav-btn" id="fab-nav-btn" title="导航菜单">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </div>
+
   <!-- 版本号（左下角极小显示） -->
   <div id="app-version" style="
     position: fixed;
@@ -366,25 +416,25 @@
     pointer-events: none;
     z-index: 9999;
     font-family: monospace;
-  ">v2.1.0</div>
+  ">v2.3.0</div>
 
   <!-- ===========================
        JavaScript 模块加载
        按依赖顺序引入：工具函数 -> 存储层 -> 词库 -> 功能模块 -> 主控制器
        =========================== -->
-  <script src="js/utils.js?v=220"></script>
-  <script src="js/storage.js?v=220"></script>
-  <script src="js/config.js?v=220"></script>
-  <script src="js/api.js?v=220"></script>
-  <script src="js/auth.js?v=220"></script>
-  <script src="js/word-data.js?v=220"></script>
-  <script src="js/textbook-service.js?v=220"></script>
-  <script src="js/syllable.js?v=220"></script>
-  <script src="js/similar-sounds.js?v=220"></script>
-  <script src="js/ai-service.js?v=220"></script>
-  <script src="js/spell-module.js?v=220"></script>
-  <script src="js/icons.js?v=220"></script>
-  <script src="js/app.js?v=220"></script>
+  <script src="js/utils.js?v=232"></script>
+  <script src="js/storage.js?v=232"></script>
+  <script src="js/config.js?v=232"></script>
+  <script src="js/api.js?v=232"></script>
+  <script src="js/auth.js?v=232"></script>
+  <script src="js/word-data.js?v=232"></script>
+  <script src="js/textbook-service.js?v=232"></script>
+  <script src="js/syllable.js?v=232"></script>
+  <script src="js/similar-sounds.js?v=232"></script>
+  <script src="js/ai-service.js?v=232"></script>
+  <script src="js/spell-module.js?v=232"></script>
+  <script src="js/icons.js?v=232"></script>
+  <script src="js/app.js?v=232"></script>
   <script>
     // 从配置同步版本号到左下角显示
     if (typeof SITE_CONFIG !== 'undefined' && SITE_CONFIG.APP_VERSION) {

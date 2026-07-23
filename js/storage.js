@@ -457,6 +457,7 @@ class SettingsStorage {
       learnPhrases: false,  // 是否学习短语（默认关闭，只学单个单词）
       autoPlayAudio: true,  // 学习/拼写时是否自动播放发音（默认开启）
       ebbinghausReview: false, // 是否启用艾宾浩斯遗忘曲线复习（默认关闭）
+      // floatingNav 不设默认值，运行时根据设备类型决定（手机默认开，电脑默认关）
     };
   }
 

@@ -861,6 +861,9 @@ const SpellModule = {
           <button class="btn btn-ghost btn-sm" onclick="SpellModule.skipWord()">
             跳过
           </button>
+          <button class="btn btn-ghost btn-sm" style="margin-left:auto; color:var(--danger);" onclick="navigate('home')">
+            退出
+          </button>
         </div>
       </div>
     `;
@@ -1019,6 +1022,9 @@ const SpellModule = {
           <button class="btn btn-ghost btn-sm" onclick="SpellModule.skipWord()">
             跳过
           </button>
+          <button class="btn btn-ghost btn-sm" style="margin-left:auto; color:var(--danger);" onclick="navigate('home')">
+            退出
+          </button>
         </div>
       </div>
     `;
@@ -1152,6 +1158,9 @@ const SpellModule = {
           </button>
           <button class="btn btn-ghost btn-sm" onclick="SpellModule.skipWord()">
             跳过
+          </button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--danger);" onclick="navigate('home')">
+            退出
           </button>
         </div>
       </div>

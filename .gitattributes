@@ -1,0 +1,9 @@
+# Auto detect text files and perform LF/CRLF normalization
+* text=auto
+
+# CSS/JS/HTML files: normalize to LF in repo, CRLF on Windows checkout
+*.css text
+*.js text
+*.html text
+*.json text
+*.md text

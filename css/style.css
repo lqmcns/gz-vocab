@@ -186,7 +186,7 @@ select:focus {
 .navbar-inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   width: 100%;
   max-width: 1200px;
 }
@@ -2065,4 +2065,190 @@ body.tutorial-active {
   font-size: 0.8rem;
   color: var(--text-muted);
   opacity: 0.7;
+}
+
+/* ===========================
+   悬浮导航按钮 (FAB)
+   =========================== */
+
+/* 悬浮按钮主体 */
+.fab-nav-btn {
+  position: fixed;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(108, 92, 231, 0.72);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1100;
+  box-shadow: 0 2px 12px rgba(108, 92, 231, 0.25);
+  transition: box-shadow 0.2s, transform 0.2s, background 0.2s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.fab-nav-btn:hover {
+  box-shadow: 0 4px 18px rgba(108, 92, 231, 0.4);
+  background: rgba(108, 92, 231, 0.9);
+}
+
+.fab-nav-btn:active {
+  transform: scale(0.92);
+}
+
+.fab-nav-btn.expanded {
+  transform: rotate(45deg);
+  background: rgba(108, 92, 231, 0.9);
+}
+
+.fab-nav-btn.expanded:hover {
+  transform: rotate(45deg) scale(1.05);
+}
+
+.fab-nav-btn.dragging {
+  transition: none;
+  cursor: grabbing;
+  box-shadow: 0 6px 24px rgba(108, 92, 231, 0.4);
+  background: rgba(108, 92, 231, 0.9);
+}
+
+.fab-nav-btn svg {
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
+
+/* 悬浮按钮遮罩（展开时点击外部关闭） */
+.fab-nav-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1095;
+  background: transparent;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+.fab-nav-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 展开面板 */
+.fab-nav-panel {
+  position: fixed;
+  z-index: 1101;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  padding: 0.6rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.35rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.85) translateY(10px);
+  transform-origin: bottom right;
+  transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
+}
+
+.fab-nav-panel.open {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1) translateY(0);
+}
+
+/* 面板中的功能按钮 */
+.fab-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.5rem 0.35rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  color: var(--text-secondary);
+  min-width: 58px;
+  min-height: 58px;
+}
+
+.fab-nav-item:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.fab-nav-item.active {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.fab-nav-item svg {
+  width: 18px;
+  height: 18px;
+}
+
+.fab-nav-item-label {
+  font-size: 0.68rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 悬浮按钮隐藏状态 */
+.fab-nav-btn.hidden {
+  display: none !important;
+}
+
+/* ---------- 移动端：隐藏导航栏 ---------- */
+@media (max-width: 768px) {
+  body.floating-nav-enabled .navbar {
+    display: none;
+  }
+
+  body.floating-nav-enabled {
+    padding-top: 0;
+  }
+
+  body.floating-nav-enabled .main-content {
+    min-height: 100vh;
+    padding-top: 1rem;
+  }
+}
+
+/* 移动端面板适配 */
+@media (max-width: 480px) {
+  .fab-nav-panel {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.25rem;
+    padding: 0.5rem;
+  }
+
+  .fab-nav-item {
+    min-width: 56px;
+    min-height: 56px;
+    padding: 0.45rem 0.3rem;
+  }
+
+  .fab-nav-item-label {
+    font-size: 0.68rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .fab-nav-panel {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .fab-nav-item {
+    min-width: 48px;
+    min-height: 52px;
+  }
 }
