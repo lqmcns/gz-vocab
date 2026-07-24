@@ -340,6 +340,18 @@ function navigate(section) {
   // 更新悬浮按钮面板高亮
   updateFabActiveState(section);
 
+  // 更新手机端返回按钮可见性：非首页时显示
+  const mobileBackBtn = document.getElementById('mobile-back-btn');
+  if (mobileBackBtn) {
+    if (section !== 'home') {
+      mobileBackBtn.classList.add('visible');
+      document.body.classList.add('non-home');
+    } else {
+      mobileBackBtn.classList.remove('visible');
+      document.body.classList.remove('non-home');
+    }
+  }
+
   // 根据目标 section 执行渲染
   switch (section) {
     case 'home':
@@ -5916,20 +5928,28 @@ function _positionFabPanel(btn, panel) {
   const panelRect = panel.getBoundingClientRect();
   const margin = 8;
 
-  // 默认：面板在按钮上方
-  let panelLeft = btnRect.left + btnRect.width / 2 - panelRect.width / 2;
-  let panelTop = btnRect.top - panelRect.height - margin;
+  // 如果面板比可视区域还宽，限制面板最大宽度
+  const maxPanelWidth = window.innerWidth - margin * 2;
+  if (panelRect.width > maxPanelWidth) {
+    panel.style.width = maxPanelWidth + 'px';
+  }
+  // 重新获取可能调整宽度后的尺寸
+  const adjustedRect = panel.getBoundingClientRect();
+
+  // 默认：面板在按钮上方，水平居中对齐按钮
+  let panelLeft = btnRect.left + btnRect.width / 2 - adjustedRect.width / 2;
+  let panelTop = btnRect.top - adjustedRect.height - margin;
 
   // 如果上方空间不够，放下方
   if (panelTop < margin) {
     panelTop = btnRect.bottom + margin;
   }
 
-  // 水平边界限制
-  panelLeft = Math.max(margin, Math.min(panelLeft, window.innerWidth - panelRect.width - margin));
+  // 水平边界限制：确保不超出左右边缘
+  panelLeft = Math.max(margin, Math.min(panelLeft, window.innerWidth - adjustedRect.width - margin));
 
-  // 垂直边界限制
-  panelTop = Math.max(margin, Math.min(panelTop, window.innerHeight - panelRect.height - margin));
+  // 垂直边界限制：确保不超出上下边缘
+  panelTop = Math.max(margin, Math.min(panelTop, window.innerHeight - adjustedRect.height - margin));
 
   panel.style.left = panelLeft + 'px';
   panel.style.top = panelTop + 'px';

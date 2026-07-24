@@ -11,11 +11,11 @@
   <title> 镐冢词汇 - 高考3500词 - 背单词</title>
 
   <!-- 全局样式 -->
-  <link rel="stylesheet" href="css/style.css?v=232">
-  <link rel="stylesheet" href="css/learn.css?v=232">
-  <link rel="stylesheet" href="css/spell.css?v=232">
-  <link rel="stylesheet" href="css/challenge.css?v=232">
-  <link rel="stylesheet" href="css/pages.css?v=232">
+  <link rel="stylesheet" href="css/style.css?v=233">
+  <link rel="stylesheet" href="css/learn.css?v=233">
+  <link rel="stylesheet" href="css/spell.css?v=233">
+  <link rel="stylesheet" href="css/challenge.css?v=233">
+  <link rel="stylesheet" href="css/pages.css?v=233">
 
   <!-- Hyphen 库 CDN（英文单词连字符断字） -->
   <script src="https://cdn.jsdelivr.net/npm/hyphen@1.14.1/hyphen.min.js"></script>
@@ -397,6 +397,13 @@
   </main>
 
   <!-- ===========================
+       手机端返回按钮（仅移动端非首页显示）
+       =========================== -->
+  <div class="mobile-back-btn" id="mobile-back-btn" title="返回首页" onclick="navigate('home')">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+  </div>
+
+  <!-- ===========================
        悬浮导航按钮
        =========================== -->
   <div class="fab-nav-overlay" id="fab-nav-overlay"></div>
@@ -416,25 +423,25 @@
     pointer-events: none;
     z-index: 9999;
     font-family: monospace;
-  ">v2.3.0</div>
+  ">v2.3.3</div>
 
   <!-- ===========================
        JavaScript 模块加载
        按依赖顺序引入：工具函数 -> 存储层 -> 词库 -> 功能模块 -> 主控制器
        =========================== -->
-  <script src="js/utils.js?v=232"></script>
-  <script src="js/storage.js?v=232"></script>
-  <script src="js/config.js?v=232"></script>
-  <script src="js/api.js?v=232"></script>
-  <script src="js/auth.js?v=232"></script>
-  <script src="js/word-data.js?v=232"></script>
-  <script src="js/textbook-service.js?v=232"></script>
-  <script src="js/syllable.js?v=232"></script>
-  <script src="js/similar-sounds.js?v=232"></script>
-  <script src="js/ai-service.js?v=232"></script>
-  <script src="js/spell-module.js?v=232"></script>
-  <script src="js/icons.js?v=232"></script>
-  <script src="js/app.js?v=232"></script>
+  <script src="js/utils.js?v=233"></script>
+  <script src="js/storage.js?v=233"></script>
+  <script src="js/config.js?v=233"></script>
+  <script src="js/api.js?v=233"></script>
+  <script src="js/auth.js?v=233"></script>
+  <script src="js/word-data.js?v=233"></script>
+  <script src="js/textbook-service.js?v=233"></script>
+  <script src="js/syllable.js?v=233"></script>
+  <script src="js/similar-sounds.js?v=233"></script>
+  <script src="js/ai-service.js?v=233"></script>
+  <script src="js/spell-module.js?v=233"></script>
+  <script src="js/icons.js?v=233"></script>
+  <script src="js/app.js?v=233"></script>
   <script>
     // 从配置同步版本号到左下角显示
     if (typeof SITE_CONFIG !== 'undefined' && SITE_CONFIG.APP_VERSION) {

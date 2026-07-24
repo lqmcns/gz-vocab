@@ -15,6 +15,8 @@ class ProgressStorage {
     this.STORAGE_KEY = 'vocab-progress';
     // 云端同步防抖计时器
     this._cloudSyncTimer = null;
+    // 标记：正在从云端下载数据时禁止上传（防止新设备登录时空数据覆盖云端）
+    this._isLoadingFromCloud = false;
   }
 
   /**
@@ -46,6 +48,8 @@ class ProgressStorage {
   _scheduleCloudSync() {
     // 只在登录状态下同步
     if (typeof AuthService === 'undefined' || !AuthService.isLoggedIn()) return;
+    // 正在从云端下载时禁止上传（防止新设备登录时空数据覆盖云端）
+    if (this._isLoadingFromCloud) return;
     
     // 清除之前的计时器
     if (this._cloudSyncTimer) {
@@ -60,25 +64,23 @@ class ProgressStorage {
 
   /**
    * 执行云端同步
-   * 同步内容：学习进度 + 用户设置 + 学习会话（中途退出记录）
+   * 同步内容：学习进度（原始状态，不含遗忘曲线运行时转换） + 用户设置 + 学习会话
    */
   async _syncToCloud() {
     if (typeof AuthService === 'undefined' || !AuthService.isLoggedIn()) return;
-    
+    // 正在从云端下载时禁止上传（防止新设备登录时空数据覆盖云端）
+    if (this._isLoadingFromCloud) return;
+
     try {
-      // 修复：先执行自动状态转换，再取快照，保证 learned 和 stats 口径一致
-      const stats = this.getProgressStats(); // 内部会调 _autoUpdateReviewStatus
-      const progress = this.getAllProgress(); // 转换后再取快照
-      // 读取当前设置（合并到云端）
+      // 上传原始 localStorage 数据（mastered 状态不被遗忘曲线转换污染）
+      const progress = this.getAllProgress();
       const settings = (typeof settingsStorage !== 'undefined')
         ? settingsStorage.getSettings()
         : {};
-      // 收集所有学习会话进度（learnflow_ 前缀的 localStorage 项）
       const learnSessions = this._collectLearnSessions();
       const data = {
         username: AuthService.getUsername(),
         learned: progress,
-        stats: stats,
         settings: settings,
         learnSessions: learnSessions,
         updatedAt: new Date().toISOString(),
@@ -144,7 +146,9 @@ class ProgressStorage {
    */
   async loadFromCloud() {
     if (typeof AuthService === 'undefined' || !AuthService.isLoggedIn()) return false;
-    
+
+    // 设置标志：下载期间禁止上传，防止空数据覆盖云端
+    this._isLoadingFromCloud = true;
     try {
       const cloudData = await AuthService.loadCloudData();
       if (!cloudData) return false;
@@ -215,6 +219,9 @@ class ProgressStorage {
       return mergedSomething;
     } catch (e) {
       console.warn('[ProgressStorage] 加载云端数据失败:', e);
+    } finally {
+      // 无论成功或失败，都要重置标志，否则后续所有上传都会被永久阻止
+      this._isLoadingFromCloud = false;
     }
     return false;
   }
@@ -279,14 +286,12 @@ class ProgressStorage {
   }
 
   /**
-   * 获取各状态的数量统计（自动将到期的 mastered 转为 review）
+   * 获取各状态的数量统计（自动将到期的 mastered 在运行时转为 review）
    * @returns {{ learning: number, mastered: number, review: number, total: number }}
    */
   getProgressStats() {
-    // 先执行自动状态转换（遗忘曲线）
-    this._autoUpdateReviewStatus();
-
-    const progress = this.getAllProgress();
+    // 获取运行时计算后的进度（不修改 localStorage）
+    const progress = this._getEffectiveProgress();
     const stats = { learning: 0, mastered: 0, review: 0, total: 0 };
     Object.values(progress).forEach((item) => {
       if (stats.hasOwnProperty(item.status)) {
@@ -306,63 +311,50 @@ class ProgressStorage {
   }
 
   /**
-   * 自动更新复习状态
-   * 检查所有 mastered 状态的单词，如果距离上次学习时间超过当前复习间隔，则转为 review
-   * 仅在用户启用了艾宾浩斯复习曲线时执行
+   * 获取运行时有效的进度数据（含遗忘曲线计算）
+   * 纯计算，不修改 localStorage，不触发云端同步
+   * 云端始终存储原始 mastered 状态，review 转换仅在本地运行时生效
+   * @returns {object} 进度数据副本（mastered 到期的会被标记为 review）
    */
-  _autoUpdateReviewStatus() {
+  _getEffectiveProgress() {
+    const progress = this.getAllProgress();
+
     // 检查是否启用了艾宾浩斯复习曲线
     if (typeof settingsStorage !== 'undefined') {
       const ebbinghausEnabled = settingsStorage.getSetting('ebbinghausReview');
-      if (!ebbinghausEnabled) return; // 未启用则跳过
+      if (!ebbinghausEnabled) return progress; // 未启用则直接返回原始数据
     }
 
-    try {
-      const progress = this.getAllProgress();
-      const now = Date.now();
-      let changed = false;
+    const now = Date.now();
+    for (const wordId in progress) {
+      const item = progress[wordId];
+      if (item.status !== 'mastered') continue;
 
-      for (const wordId in progress) {
-        const item = progress[wordId];
-        if (item.status !== 'mastered') continue;
+      const reviewCount = item.reviewCount || 0;
+      const updatedAt = item.updatedAt || 0;
+      const hoursPassed = (now - updatedAt) / (1000 * 60 * 60);
 
-        // 获取复习次数和上次更新时间
-        const reviewCount = item.reviewCount || 0;
-        const updatedAt = item.updatedAt || 0;
-        const hoursPassed = (now - updatedAt) / (1000 * 60 * 60);
+      const intervalIndex = Math.min(reviewCount, this.REVIEW_INTERVALS.length - 1);
+      const intervalHours = this.REVIEW_INTERVALS[intervalIndex];
 
-        // 获取当前复习间隔
-        const intervalIndex = Math.min(reviewCount, this.REVIEW_INTERVALS.length - 1);
-        const intervalHours = this.REVIEW_INTERVALS[intervalIndex];
-
-        // 如果超过间隔时间，转为待复习
-        if (hoursPassed >= intervalHours) {
-          progress[wordId].status = 'review';
-          // 保留原始 updatedAt（标记为进入复习状态的时间点），
-          // 但新增 lastReviewAt 记录这次状态转换的时间，用于云端合并时判断
-          progress[wordId].lastReviewAt = now;
-          changed = true;
-        }
+      // 如果超过间隔时间，在运行时标记为待复习（不修改原始数据）
+      if (hoursPassed >= intervalHours) {
+        progress[wordId] = {
+          ...item,
+          status: 'review',
+          lastReviewAt: now,
+        };
       }
-
-      if (changed) {
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(progress));
-        console.log('[ProgressStorage] 已自动更新部分单词为待复习状态');
-        // 触发云端同步，确保复习状态上云
-        this._scheduleCloudSync();
-      }
-    } catch (e) {
-      console.error('[ProgressStorage] 自动更新复习状态失败:', e);
     }
+    return progress;
   }
 
   /**
-   * 获取所有待复习的单词（status === 'review'）
+   * 获取所有待复习的单词（含遗忘曲线运行时计算的 review）
    * @returns {Array<{id: number, word: string, status: string, updatedAt: number}>}
    */
   getReviewWords() {
-    this._autoUpdateReviewStatus();
-    const progress = this.getAllProgress();
+    const progress = this._getEffectiveProgress();
     const result = [];
     for (const id in progress) {
       if (progress[id].status === 'review') {

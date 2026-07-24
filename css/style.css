@@ -2068,6 +2068,46 @@ body.tutorial-active {
 }
 
 /* ===========================
+   手机端返回按钮（仅移动端非首页显示）
+   =========================== */
+.mobile-back-btn {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(108, 92, 231, 0.5);
+  color: #ffffff;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1099;
+  box-shadow: 0 2px 12px rgba(108, 92, 231, 0.2);
+  transition: background 0.2s, transform 0.2s;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.mobile-back-btn:active {
+  transform: scale(0.92);
+}
+
+.mobile-back-btn svg {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+/* 仅移动端且开启悬浮导航时显示返回按钮 */
+@media (max-width: 768px) {
+  body.floating-nav-enabled .mobile-back-btn.visible {
+    display: flex;
+  }
+}
+
+/* ===========================
    悬浮导航按钮 (FAB)
    =========================== */
 
@@ -2077,20 +2117,20 @@ body.tutorial-active {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: rgba(108, 92, 231, 0.72);
+  background: rgba(108, 92, 231, 0.5);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 1100;
-  box-shadow: 0 2px 12px rgba(108, 92, 231, 0.25);
+  box-shadow: 0 2px 12px rgba(108, 92, 231, 0.2);
   transition: box-shadow 0.2s, transform 0.2s, background 0.2s;
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .fab-nav-btn:hover {
@@ -2210,16 +2250,21 @@ body.tutorial-active {
 /* ---------- 移动端：隐藏导航栏 ---------- */
 @media (max-width: 768px) {
   body.floating-nav-enabled .navbar {
-    display: none;
+    display: none !important;
   }
 
   body.floating-nav-enabled {
-    padding-top: 0;
+    padding-top: 0 !important;
   }
 
   body.floating-nav-enabled .main-content {
     min-height: 100vh;
     padding-top: 1rem;
+  }
+
+  /* 非首页时为返回按钮留出空间 */
+  body.floating-nav-enabled.non-home .main-content {
+    padding-top: 56px;
   }
 }
 

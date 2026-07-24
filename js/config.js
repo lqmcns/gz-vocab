@@ -12,7 +12,7 @@
  */
 const SITE_CONFIG = {
   // 应用版本号（每次更新后手动修改）
-  APP_VERSION: '2.3.0',
+  APP_VERSION: '2.3.3',
 
   // Gitee 仓库配置
   GITEE_OWNER: 'northsey',
